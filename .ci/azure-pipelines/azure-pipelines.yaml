@@ -31,7 +31,9 @@ stages:
   - stage: formatting
     displayName: Formatting
     jobs:
-      - script: echo Successfully run!
+      - job: formatting
+        steps:
+          - script: echo Successfully run!
 
   - stage: build_gcc
     displayName: Build GCC
