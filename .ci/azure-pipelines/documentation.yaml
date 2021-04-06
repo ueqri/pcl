@@ -30,7 +30,6 @@ stages:
         displayName: Generate Documentation
         pool:
           vmImage: 'Ubuntu 20.04'
-        container: doc
         variables:
           BUILD_DIR: '$(Agent.BuildDirectory)/build'
           DOC_DIR: '$(Agent.BuildDirectory)/documentation'
@@ -41,4 +40,8 @@ stages:
     displayName: Tutorials
     condition: eq(variables['Build.Reason'], 'ResourceTrigger')
     jobs:
-      - script: echo triggered by build_gcc after it completed successfully!
+      - job: tutorials
+        pool:
+          vmImage: 'Ubuntu 20.04'
+        steps:
+          - script: echo triggered by build_gcc after it completed successfully!
