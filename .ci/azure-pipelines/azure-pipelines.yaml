@@ -32,6 +32,8 @@ stages:
     displayName: Formatting
     jobs:
       - job: formatting
+        pool:
+          vmImage: 'Ubuntu 20.04'
         steps:
           - script: echo Successfully run!
 
@@ -74,7 +76,7 @@ stages:
       - job: osx
         displayName: macOS
         pool:
-          vmImage: '$(VMIMAGE)'
+          vmImage: 'Ubuntu 20.04'
         strategy:
           matrix:
             Catalina 10.15:
