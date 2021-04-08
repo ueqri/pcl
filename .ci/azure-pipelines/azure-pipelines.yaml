@@ -1,4 +1,7 @@
 trigger:
+  branches:
+    include:
+    - test-feature-on-minimal-CI
   paths:
     exclude:
     - doc
@@ -7,6 +10,9 @@ trigger:
     - CONTRIBUTING.md
 
 pr:
+  branches:
+    include:
+    - test-feature-on-minimal-CI
   paths:
     exclude:
     - doc
