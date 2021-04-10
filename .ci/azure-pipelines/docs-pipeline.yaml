@@ -27,7 +27,7 @@ stages:
   - stage: formatting
     displayName: Formatting
     # if docs pipeline triggered by build_gcc stage,
-    # the formatting stage has already run, thus it
+    # the formatting job has already run, thus it
     # won't run for a second time here.
     condition: not(eq(variables['Build.Reason'], 'ResourceTrigger'))
     jobs:
@@ -41,5 +41,6 @@ stages:
 
   - stage: tutorials
     displayName: Tutorials
+    condition: succeeded()
     jobs:
       - template: tutorials.yaml
