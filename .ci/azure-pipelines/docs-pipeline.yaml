@@ -35,12 +35,11 @@ stages:
 
   - stage: documentation
     displayName: Documentation
-    condition: always()
+    condition: in(dependencies.formatting.result, 'Succeeded', 'SucceededWithIssues', 'Skipped')
     jobs:
       - template: documentation.yaml
 
   - stage: tutorials
     displayName: Tutorials
-    condition: succeeded()
     jobs:
       - template: tutorials.yaml
