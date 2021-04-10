@@ -23,18 +23,22 @@ resources:
     - container: env1804 # for tutorials.yaml
       image: pointcloudlibrary/env:18.04
 
+variables:
+  isTriggeredByBuild: eq(variables['Build.Reason'], 'ResourceTrigger')
+
 stages:
   - stage: formatting
     displayName: Formatting
     # if docs pipeline triggered by build_gcc stage,
     # the formatting stage has already run, thus it
     # won't run for a second time here.
-    condition: not(eq(variables['Build.Reason'], 'ResourceTrigger'))
+    condition: not(isTriggeredByBuild)
     jobs:
       - template: formatting.yaml
 
   - stage: documentation
     displayName: Documentation
+    condition: or(succeeded(), isTriggeredByBuild)
     jobs:
       - template: documentation.yaml
 
