@@ -41,5 +41,6 @@ stages:
 
   - stage: tutorials
     displayName: Tutorials
+    condition: in(dependencies.documentation.result, 'Succeeded', 'SucceededWithIssues')
     jobs:
       - template: tutorials.yaml
