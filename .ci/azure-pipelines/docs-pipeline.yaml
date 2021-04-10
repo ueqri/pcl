@@ -24,7 +24,7 @@ resources:
       image: pointcloudlibrary/env:18.04
 
 variables:
-  isTriggeredByBuild: eq(variables['Build.Reason'], 'ResourceTrigger')
+  isTriggeredByBuild: $[eq(variables['Build.Reason'], 'ResourceTrigger')]
 
 stages:
   - stage: formatting
