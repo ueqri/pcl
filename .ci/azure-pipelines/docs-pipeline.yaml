@@ -30,6 +30,6 @@ stages:
 
   - stage: tutorials
     displayName: Tutorials
-    dependOn: documentation
+    dependsOn: documentation
     jobs:
       - template: tutorials.yaml
