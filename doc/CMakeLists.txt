@@ -1,3 +1,4 @@
+# This is a test line.
 include(CMakeDependentOption)
 
 cmake_dependent_option(WITH_TUTORIALS "Build tutorials (requires Sphinx)" FALSE "WITH_DOCS" FALSE)
