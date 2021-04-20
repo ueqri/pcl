@@ -1,29 +1,23 @@
 trigger:
   paths:
     exclude:
-    - doc
     - README.md
     - CHANGES.md
     - CONTRIBUTING.md
+    # add more exclude rules, e.g. .ci, .dev, .github
 
 pr:
   paths:
     exclude:
-    - doc
     - README.md
     - CHANGES.md
     - CONTRIBUTING.md
+    # add more exclude rules, e.g. .ci, .dev, .github
 
 resources:
   containers:
-    - container: fmt
+    - container: fmt # for formatting.yaml
       image: pointcloudlibrary/fmt
-    - container: env1804
-      image: pointcloudlibrary/env:18.04
-    - container: env2004
-      image: pointcloudlibrary/env:20.04
-    - container: env2010
-      image: pointcloudlibrary/env:20.10
 
 stages:
   - stage: formatting
@@ -31,133 +25,31 @@ stages:
     jobs:
       - template: formatting.yaml
 
-  - stage: build_gcc
-    displayName: Build GCC
-    dependsOn: formatting
+  - stage: diff
+    displayName: Code Changes Diff
     jobs:
-      - job: ubuntu
-        displayName: Ubuntu
-        pool:
-          vmImage: 'Ubuntu 20.04'
-        strategy:
-          matrix:
-            18.04 GCC:  # oldest LTS
-              CONTAINER: env1804
-              CC: gcc
-              CXX: g++
-              BUILD_GPU: ON
-              CMAKE_ARGS: '-DPCL_WARNINGS_ARE_ERRORS=ON'
-            20.10 GCC:  # latest Ubuntu
-              CONTAINER: env2010
-              CC: gcc
-              CXX: g++
-              BUILD_GPU: OFF
-              # surface is not ready for re-entrant QHull
-              CMAKE_ARGS: '-DBUILD_tests_surface=OFF'
-        container: $[ variables['CONTAINER'] ]
-        timeoutInMinutes: 0
-        variables:
-          BUILD_DIR: '$(Agent.BuildDirectory)/build'
-          CMAKE_CXX_FLAGS: '-Wall -Wextra -Wnoexcept-type'
-          DISPLAY: :99.0 # Checked for in CMake
+      - job: CodeDiff
         steps:
-          - script: echo $(System.JobDisplayName) successfully done!
+          - checkout: self
+            fetchDepth: 10
+          - script: |
+              echo "##vso[task.setvariable variable=HasCodeChanges;isOutput=true]false"
+              git diff --quiet HEAD master --  ':(exclude)doc' ':(exclude)*.md' || \
+              echo "##vso[task.setvariable variable=HasCodeChanges;isOutput=true]true"
+            name: GitResult
 
-  - stage: build_clang
-    displayName: Build Clang
+  - stage: documentation
+    displayName: Goto Documentation
     dependsOn: formatting
+    condition: and(succeeded(), eq(dependencies.diff.outputs['CodeDiff.GitResult.HasCodeChanges'], 'false'))
     jobs:
-      - job: osx
-        displayName: macOS
-        pool:
-          vmImage: '$(VMIMAGE)'
-        strategy:
-          matrix:
-            Catalina 10.15:
-              VMIMAGE: 'macOS-10.15'
-              OSX_VERSION: '10.15'
-            Mojave 10.14:
-              VMIMAGE: 'macOS-10.14'
-              OSX_VERSION: '10.14'
-        timeoutInMinutes: 0
-        variables:
-          BUILD_DIR: '$(Agent.WorkFolder)/build'
-          GOOGLE_TEST_DIR: '$(Agent.WorkFolder)/googletest'
-          CMAKE_CXX_FLAGS: '-Wall -Wextra -Wabi -Werror -Wno-error=deprecated-declarations'
-        steps:
-          - script: echo $(System.JobDisplayName) successfully done!
-      - job: ubuntu
-        displayName: Ubuntu
-        # Placement of Ubuntu Clang job after macOS ensures an extra parallel job doesn't need to be created.
-        # Total time per run remains same since macOS is quicker so it finishes earlier, and remaining time is used by this job
-        # Therefore, number of parallel jobs and total run time of entire pipeline remains unchanged even after addition of this job
-        # The version of Ubuntu is chosen to cover more versions than covered by GCC based CI
-        dependsOn: osx
-        condition: succeededOrFailed()
-        pool:
-          vmImage: 'Ubuntu 20.04'
-        strategy:
-          matrix:
-            20.04 Clang:
-              CONTAINER: env2004
-              CC: clang
-              CXX: clang++
-              BUILD_GPU: ON
-              CMAKE_ARGS: ''
-        container: $[ variables['CONTAINER'] ]
-        timeoutInMinutes: 0
-        variables:
-          BUILD_DIR: '$(Agent.BuildDirectory)/build'
-          CMAKE_CXX_FLAGS: '-Wall -Wextra'
-          DISPLAY: :99.0 # Checked for in CMake
-        steps:
-          - script: echo $(System.JobDisplayName) successfully done!
-      - job: ubuntu_indices
-        displayName: Ubuntu Indices
-        # Test 64 bit & unsigned indices
-        dependsOn: osx
-        condition: succeededOrFailed()
-        pool:
-          vmImage: 'Ubuntu 20.04'
-        strategy:
-          matrix:
-            20.04 Clang:
-              CONTAINER: env2004
-              CC: clang
-              CXX: clang++
-              INDEX_SIGNED: OFF
-              INDEX_SIZE: 64
-              CMAKE_ARGS: ''
-        container: $[ variables['CONTAINER'] ]
-        timeoutInMinutes: 0
-        variables:
-          BUILD_DIR: '$(Agent.BuildDirectory)/build'
-          CMAKE_CXX_FLAGS: '-Wall -Wextra'
-        steps:
-          - script: echo $(System.JobDisplayName) successfully done!
+      - script: |
+          echo Trigger docs-pipeline.yaml...
 
-  - stage: build_msvc
-    displayName: Build MSVC
+  - stage: build
+    displayName: Goto Build
     dependsOn: formatting
+    condition: and(succeeded(), eq(dependencies.diff.outputs['CodeDiff.GitResult.HasCodeChanges'], 'true'))
     jobs:
-      - job: vs2017
-        displayName: Windows VS2017 Build
-        pool:
-          vmImage: 'vs2017-win2016'
-        strategy:
-          matrix:
-            x86:
-              PLATFORM: 'x86'
-              ARCHITECTURE: 'x86'
-              GENERATOR: 'Visual Studio 15 2017'
-            x64:
-              PLATFORM: 'x64'
-              ARCHITECTURE: 'x86_amd64'
-              GENERATOR: 'Visual Studio 15 2017 Win64'
-        timeoutInMinutes: 0
-        variables:
-          BUILD_DIR: 'c:\build'
-          CONFIGURATION: 'Release'
-          VCPKG_ROOT: 'C:\vcpkg'
-        steps:
-          - script: echo $(System.JobDisplayName) successfully done!
+      - script: |
+          echo Trigger build-pipeline.yaml...
