@@ -29,6 +29,8 @@ stages:
     displayName: Code Changes Diff
     jobs:
       - job: CodeDiff
+        pool:
+          vmImage: 'ubuntu-latest'
         steps:
           - checkout: self
             fetchDepth: 10
@@ -44,6 +46,8 @@ stages:
     condition: and(succeeded(), eq(dependencies.diff.outputs['CodeDiff.GitResult.HasCodeChanges'], 'false'))
     jobs:
       - job: simplePrompt
+        pool:
+          vmImage: 'ubuntu-latest'
         steps:
           - script: echo Trigger docs-pipeline.yaml...
 
@@ -53,5 +57,7 @@ stages:
     condition: and(succeeded(), eq(dependencies.diff.outputs['CodeDiff.GitResult.HasCodeChanges'], 'true'))
     jobs:
       - job: simplePrompt
+        pool:
+          vmImage: 'ubuntu-latest'
         steps:
           - script: echo Trigger build-pipeline.yaml...
