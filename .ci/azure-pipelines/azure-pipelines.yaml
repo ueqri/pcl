@@ -43,13 +43,15 @@ stages:
     dependsOn: formatting
     condition: and(succeeded(), eq(dependencies.diff.outputs['CodeDiff.GitResult.HasCodeChanges'], 'false'))
     jobs:
-      - script: |
-          echo Trigger docs-pipeline.yaml...
+      - job: simplePrompt
+        steps:
+          - script: echo Trigger docs-pipeline.yaml...
 
   - stage: build
     displayName: Goto Build
     dependsOn: formatting
     condition: and(succeeded(), eq(dependencies.diff.outputs['CodeDiff.GitResult.HasCodeChanges'], 'true'))
     jobs:
-      - script: |
-          echo Trigger build-pipeline.yaml...
+      - job: simplePrompt
+        steps:
+          - script: echo Trigger build-pipeline.yaml...
