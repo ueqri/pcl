@@ -28,7 +28,8 @@ stages:
   - stage: diff
     displayName: Code Changes Diff
     jobs:
-      - job: Code Diff
+      - job: codeDiff
+        displayName: Code Diff
         pool:
           vmImage: 'ubuntu-latest'
         steps:
@@ -45,7 +46,8 @@ stages:
     dependsOn: diff
     condition: and(succeeded(), eq(dependencies.diff.outputs['CodeDiff.GitResult.HasCodeChanges'], 'false'))
     jobs:
-      - job: Simple Prompt
+      - job: prompt
+        displayName: Simple Prompt
         pool:
           vmImage: 'ubuntu-latest'
         steps:
@@ -56,7 +58,8 @@ stages:
     dependsOn: diff
     condition: and(succeeded(), eq(dependencies.diff.outputs['CodeDiff.GitResult.HasCodeChanges'], 'true'))
     jobs:
-      - job: Simple Prompt
+      - job: prompt
+        displayName: Simple Prompt
         pool:
           vmImage: 'ubuntu-latest'
         steps:
