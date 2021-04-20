@@ -28,7 +28,7 @@ stages:
   - stage: diff
     displayName: Code Changes Diff
     jobs:
-      - job: CodeDiff
+      - job: Code Diff
         pool:
           vmImage: 'ubuntu-latest'
         steps:
@@ -36,7 +36,7 @@ stages:
             fetchDepth: 10
           - script: |
               echo "##vso[task.setvariable variable=HasCodeChanges;isOutput=true]false"
-              git diff --quiet HEAD master --  ':(exclude)doc' ':(exclude)*.md' || \
+              git diff --quiet HEAD HEAD~1 --  ':(exclude)doc' ':(exclude)*.md' || \
               echo "##vso[task.setvariable variable=HasCodeChanges;isOutput=true]true"
             name: GitResult
 
@@ -45,7 +45,7 @@ stages:
     dependsOn: diff
     condition: and(succeeded(), eq(dependencies.diff.outputs['CodeDiff.GitResult.HasCodeChanges'], 'false'))
     jobs:
-      - job: simplePrompt
+      - job: Simple Prompt
         pool:
           vmImage: 'ubuntu-latest'
         steps:
@@ -56,7 +56,7 @@ stages:
     dependsOn: diff
     condition: and(succeeded(), eq(dependencies.diff.outputs['CodeDiff.GitResult.HasCodeChanges'], 'true'))
     jobs:
-      - job: simplePrompt
+      - job: Simple Prompt
         pool:
           vmImage: 'ubuntu-latest'
         steps:
