@@ -22,7 +22,7 @@ resources:
 stages:
   - stage: build_gcc
     displayName: Build GCC
-    dependsOn: formatting
+    dependsOn: []
     jobs:
       - job: ubuntu
         displayName: Ubuntu
@@ -54,7 +54,7 @@ stages:
 
   - stage: build_clang
     displayName: Build Clang
-    dependsOn: formatting
+    dependsOn: []
     jobs:
       - job: osx
         displayName: macOS
@@ -127,7 +127,7 @@ stages:
 
   - stage: build_msvc
     displayName: Build MSVC
-    dependsOn: formatting
+    dependsOn: []
     jobs:
       - job: vs2017
         displayName: Windows VS2017 Build
