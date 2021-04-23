@@ -37,7 +37,7 @@ stages:
             fetchDepth: 10
           - script: |
               echo "##vso[task.setvariable variable=HasCodeChanges;isOutput=true]false"
-              git diff --quiet HEAD HEAD~1 --  ':(exclude)doc' ':(exclude)*.md' || \
+              git diff --quiet HEAD $(git merge-base HEAD master) --  ':(exclude)doc' ':(exclude)*.md' || \
               echo "##vso[task.setvariable variable=HasCodeChanges;isOutput=true]true"
             name: GitResult
 
