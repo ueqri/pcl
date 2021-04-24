@@ -38,8 +38,8 @@ stages:
           - script: |
               echo "##vso[task.setvariable variable=HasCodeChanges;isOutput=true]false"
               git diff --quiet HEAD $(git merge-base HEAD test-CI-features) --  ':(exclude)doc' ':(exclude)*.md' || \
-              echo "##vso[task.setvariable variable=HasCodeChanges;isOutput=true]true" \
-              echo `git diff --quiet HEAD...test-CI-features) --  ':(exclude)doc' ':(exclude)*.md'`
+              echo "##vso[task.setvariable variable=HasCodeChanges;isOutput=true]true"
+              echo `git diff HEAD...test-CI-features --  ':(exclude)doc' ':(exclude)*.md'`
             name: GitResult
 
   - stage: documentation
