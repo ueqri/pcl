@@ -38,24 +38,22 @@ stages:
           - script: |
               cd $(Build.SourcesDirectory)
               cat .git/config
-              echo *******
-              git logs | cat
-              echo *******
-              git --version
-              echo *******
-              echo $(Build.SourceBranch), $(Build.SourcesDirectory)
-              echo ********1********
-              git merge-base $(Build.SourceBranch) test-CI-features
-              echo ********2********
+              echo "*******"
+              git log | cat
+              echo "*******Source branch name & source directory & pwd*******"
+              echo $(Build.SourceBranch), $(Build.SourceBranchName), $(Build.SourcesDirectory), $PWD
+              echo "********1********"
+              git merge-base $(Build.SourceBranchName) test-CI-features
+              echo "********2********"
               git merge-base $(Build.SourceBranch) origin/test-CI-features
-              echo *******
+              echo "*******"
               git log -n 1 master --pretty=format:%H
-              echo *******
+              echo "*******"
               echo "##vso[task.setvariable variable=HasCodeChanges;isOutput=true]false"
               git diff $(git merge-base $(Build.SourceBranch) test-CI-features)
-              git diff --quiet $(git merge-base $(Build.SourceBranch) test-CI-features) --  ':(exclude)doc' ':(exclude)*.md' || \
+              git diff --quiet $(git merge-base $(Build.SourceBranchName) test-CI-features) -- ':(exclude)doc' ':(exclude)*.md' || \
               echo "##vso[task.setvariable variable=HasCodeChanges;isOutput=true]true"
-              echo $(git diff HEAD...origin/master)
+              echo $(git diff HEAD...HEAD~1)
             name: GitResult
 
   - stage: documentation
