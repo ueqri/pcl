@@ -32,3 +32,4 @@ In general there is no good rule of thumb here, but we decided to disable these
 excessive optimizations by default, and rely on CMake's *RelWithDebInfo* by
 default. You should do the same too when you prototype.
 
+# this is a test line for CI.
