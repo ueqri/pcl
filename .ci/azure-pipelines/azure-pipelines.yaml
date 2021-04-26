@@ -37,6 +37,7 @@ stages:
             fetchDepth: 10
           - script: |
               cd $(Build.SourcesDirectory)
+              LAST=$(git log -n 1 origin/test-CI-features --pretty=format:%H)
               cat .git/config
               echo "*******"
               git log | cat
@@ -45,9 +46,9 @@ stages:
               echo "********1********"
               git merge-base HEAD test-CI-features
               echo "********2********"
-              git merge-base HEAD origin/test-CI-features
+              git merge-base HEAD $LAST
               echo "*******"
-              git log -n 1 HEAD --pretty=format:%H
+
               echo "*******"
               echo "##vso[task.setvariable variable=HasCodeChanges;isOutput=true]false"
               git diff $(git merge-base $(Build.SourceBranch) origin/test-CI-features)
