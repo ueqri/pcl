@@ -37,13 +37,10 @@ stages:
             fetchDepth: 10
           - script: |
               cd $(Build.SourcesDirectory)
-              # git remote add upstream https://github.com/ueqri/pcl.git
-              # git fetch upstream
-              cat .git/config
               echo "##vso[task.setvariable variable=HasCodeChanges;isOutput=true]false"
-              #git diff --quiet HEAD $(git merge-base HEAD test-CI-features) --  ':(exclude)doc' ':(exclude)*.md' || \
+              git diff --quiet HEAD $(git merge-base HEAD test-CI-features) --  ':(exclude)doc' ':(exclude)*.md' || \
               echo "##vso[task.setvariable variable=HasCodeChanges;isOutput=true]true"
-              #echo `git diff HEAD...test-CI-features`
+              echo `git diff HEAD...test-CI-features`
             name: GitResult
 
   - stage: documentation
