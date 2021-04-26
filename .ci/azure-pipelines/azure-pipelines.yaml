@@ -38,6 +38,7 @@ stages:
           - script: |
               cd $(Build.SourcesDirectory)
               cat .git/config
+              git logs | cat
               echo "##vso[task.setvariable variable=HasCodeChanges;isOutput=true]false"
               git diff --quiet HEAD...origin/master --  ':(exclude)doc' ':(exclude)*.md' || \
               echo "##vso[task.setvariable variable=HasCodeChanges;isOutput=true]true"
