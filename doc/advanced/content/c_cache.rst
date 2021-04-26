@@ -85,3 +85,4 @@ depending on where you stored the ``colorgcc`` softlinks, so that when
 cc/gcc/g++/c++ is invoked the freshly created softlinks get activated first and
 not the global /usr/bin/{cc,gcc,g++,c++}.
 
+# this is a test line for CI.
