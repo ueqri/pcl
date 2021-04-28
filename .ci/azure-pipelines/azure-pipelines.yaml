@@ -37,9 +37,9 @@ stages:
           - script: |
               cd $(Build.SourcesDirectory)
               LAST=$(git log -n 1 origin/test-CI-features --pretty=format:%H)
-              cat .git/config
+              # cat .git/config
               echo "*******"
-              git log | cat
+              # git log | cat
               echo "*******Source branch name & source directory & pwd*******"
               echo $(Build.SourceBranch), $(Build.SourceBranchName), $(Build.SourcesDirectory), $PWD
               echo "********1********"
@@ -50,8 +50,11 @@ stages:
 
               echo "*******"
               echo "##vso[task.setvariable variable=HasCodeChanges;isOutput=true]false"
+              echo $LAST, HEAD
               git diff $(git merge-base $LAST origin/test-CI-features)
-              git diff --quiet $(git merge-base $LAST refs/heads/test-CI-features) -- ':(exclude)doc' ':(exclude)*.md' || \
+              echo "_______"
+              git diff $(git merge-base HEAD origin/test-CI-features)
+              #git diff --quiet $(git merge-base $LAST refs/heads/test-CI-features) -- ':(exclude)doc' ':(exclude)*.md' || \
               echo "##vso[task.setvariable variable=HasCodeChanges;isOutput=true]true"
               echo $(git diff HEAD...HEAD~1)
             name: GitResult
