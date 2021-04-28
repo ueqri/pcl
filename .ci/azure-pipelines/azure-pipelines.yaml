@@ -43,15 +43,15 @@ stages:
               echo "*******Source branch name & source directory & pwd*******"
               echo $(Build.SourceBranch), $(Build.SourceBranchName), $(Build.SourcesDirectory), $PWD
               echo "********1********"
-              git merge-base HEAD test-CI-features
+              git merge-base HEAD refs/heads/master
               echo "********2********"
               git merge-base HEAD $LAST
               echo "*******"
 
               echo "*******"
               echo "##vso[task.setvariable variable=HasCodeChanges;isOutput=true]false"
-              git diff $(git merge-base $(Build.SourceBranch) origin/test-CI-features)
-              git diff --quiet $(git merge-base $(Build.SourceBranchName) test-CI-features) -- ':(exclude)doc' ':(exclude)*.md' || \
+              git diff $(git merge-base $LAST origin/test-CI-features)
+              git diff --quiet $(git merge-base $LAST refs/heads/test-CI-features) -- ':(exclude)doc' ':(exclude)*.md' || \
               echo "##vso[task.setvariable variable=HasCodeChanges;isOutput=true]true"
               echo $(git diff HEAD...HEAD~1)
             name: GitResult
