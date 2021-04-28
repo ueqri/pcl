@@ -39,7 +39,7 @@ stages:
               LAST=$(git log -n 1 origin/test-CI-features --pretty=format:%H)
               # cat .git/config
               echo "*******"
-              # git log | cat
+              git log | head -n 50
               echo "*******Source branch name & source directory & pwd*******"
               echo $(Build.SourceBranch), $(Build.SourceBranchName), $(Build.SourcesDirectory), $PWD
               echo "********1********"
