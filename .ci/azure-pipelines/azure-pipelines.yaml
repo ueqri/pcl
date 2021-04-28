@@ -50,7 +50,7 @@ stages:
 
               echo "*******"
               echo "##vso[task.setvariable variable=HasCodeChanges;isOutput=true]false"
-              echo $LAST, HEAD
+              echo $LAST, $(git log -1 --format=%H)
               git diff $(git merge-base $LAST origin/test-CI-features)
               echo "_______"
               git diff $(git merge-base HEAD origin/test-CI-features)
