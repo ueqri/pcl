@@ -9,7 +9,7 @@ jobs:
       DOC_DIR: '$(Agent.BuildDirectory)/documentation'
       CHANGELOG: '$(Agent.TempDirectory)/changelog'
     steps:
-      - script: echo $(System.JobDisplayName) successfully done!
+      - script: echo $(System.JobDisplayName) successfully done! ID, $(Build.TriggeredBy.DefinitionId), Name, $(Build.TriggeredBy.DefinitionName)
       # - checkout: self
       #   # find the commit hash on a quick non-forced update too
       #   fetchDepth: 10
