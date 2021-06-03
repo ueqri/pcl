@@ -26,7 +26,13 @@ stages:
   - stage: documentation
     displayName: Documentation
     jobs:
-      - template: documentation.yaml
+    - job: documentation
+      displayName: Generate Documentation
+      pool:
+        vmImage: 'Ubuntu 20.04'
+      container: doc
+      steps:
+        - script: echo $(System.JobDisplayName) successfully done! ID, $(Build.TriggeredBy.DefinitionId), Name, $(Build.TriggeredBy.DefinitionName)
 
   - stage: tutorials
     displayName: Tutorials
