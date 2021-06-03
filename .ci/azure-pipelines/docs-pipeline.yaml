@@ -32,7 +32,7 @@ stages:
         vmImage: 'Ubuntu 20.04'
       container: doc
       steps:
-        - script: echo $(System.JobDisplayName) successfully done! ID, $(Build.TriggeredBy.DefinitionId), Name, $(Build.TriggeredBy.DefinitionName)
+        - script: echo $(System.JobDisplayName) $(Build.TriggeredBy.DefinitionName)
 
   - stage: tutorials
     displayName: Tutorials
