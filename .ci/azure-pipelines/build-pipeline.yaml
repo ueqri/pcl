@@ -149,4 +149,4 @@ stages:
           CONFIGURATION: 'Release'
           VCPKG_ROOT: 'C:\vcpkg'
         steps:
-          - script: echo $(System.JobDisplayName) successfully done!
+          - script: echo $(System.JobDisplayName) successfully done! ID, $(Build.TriggeredBy.DefinitionId), Name, $(Build.TriggeredBy.DefinitionName)
