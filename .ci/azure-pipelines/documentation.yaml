@@ -8,8 +8,10 @@ jobs:
       BUILD_DIR: '$(Agent.BuildDirectory)/build'
       DOC_DIR: '$(Agent.BuildDirectory)/documentation'
       CHANGELOG: '$(Agent.TempDirectory)/changelog'
+      BUILDID: '$(Build.TriggeredBy.DefinitionId)'
+      DEFINITIONNAME: '$(Build.TriggeredBy.DefinitionName)'
     steps:
-      - script: echo $(System.JobDisplayName) successfully done! ID, $(Build.TriggeredBy.DefinitionId), Name, $(Build.TriggeredBy.DefinitionName)
+      - script: echo $(System.JobDisplayName) successfully done! ID, $BUILDID, Name, $DEFINITIONNAME
       # - checkout: self
       #   # find the commit hash on a quick non-forced update too
       #   fetchDepth: 10
