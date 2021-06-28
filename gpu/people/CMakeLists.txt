@@ -32,7 +32,7 @@ endif()
 #Label_skeleton
 
 file(GLOB srcs src/*.cpp src/*.h*)
-file(GLOB srcs_cuda src/cuda/*.cu src/cuda/*.h src/cuda/nvidia/*.cu src/cuda/nvidia/*.hpp)
+file(GLOB srcs_cuda src/cuda/*.cpp src/cuda/*.h src/cuda/nvidia/*.cpp src/cuda/nvidia/*.hpp)
 file(GLOB hdrs include/pcl/gpu/people/*.h*)
 file(GLOB hdrs_cuda src/cuda/nvidia/*.h*)
 

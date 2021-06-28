@@ -21,7 +21,7 @@ set(incs
 )
 
 set(srcs
-  src/connected_components.cu
+  src/connected_components.cpp
 )
 
 set(LIB_NAME "pcl_${SUBSYS_NAME}")

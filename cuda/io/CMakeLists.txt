@@ -17,11 +17,11 @@ if(NOT build)
 endif()
 
 set(srcs
-  src/disparity_to_cloud.cu
+  src/disparity_to_cloud.cpp
   src/cloud_to_pcl.cpp
-  src/host_device.cu
-  src/extract_indices.cu
-  src/debayering.cu
+  src/host_device.cpp
+  src/extract_indices.cpp
+  src/debayering.cpp
 )
 
 set(incs

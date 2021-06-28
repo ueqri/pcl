@@ -14,13 +14,13 @@ if(NOT build)
 endif()
 
 file(GLOB incs include/pcl/gpu/octree/*.hpp)
-file(GLOB srcs src/*.cpp src/*.hpp src/*.cu)
+file(GLOB srcs src/*.cpp src/*.hpp src/*.cpp)
 source_group("Source Files" FILES ${srcs})
 
 file(GLOB utils src/utils/*.hpp)
 source_group("Source Files\\utils" FILES ${utils})
 
-file(GLOB cuda src/cuda/*.hpp src/cuda/*.cu)
+file(GLOB cuda src/cuda/*.hpp src/cuda/*.cpp)
 source_group("Source Files\\cuda" FILES ${cuda})
 
 list(APPEND srcs ${utils} ${cuda})

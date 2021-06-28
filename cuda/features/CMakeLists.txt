@@ -16,7 +16,7 @@ if(NOT build)
 endif()
 
 set(srcs
-  src/normal_3d.cu
+  src/normal_3d.cpp
 )
 
 set(incs

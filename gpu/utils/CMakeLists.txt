@@ -14,7 +14,7 @@ if(NOT build)
 endif()
 
 file(GLOB incs include/pcl/gpu/utils/*.h*)
-file(GLOB srcs src/*.cpp src/*.cu src/*.h*)
+file(GLOB srcs src/*.cpp src/*.cpp src/*.h*)
 file(GLOB dev_incs include/pcl/gpu/utils/device/*.h*)
 source_group("Header Files\\device" FILES ${dev_incs})
 source_group("Source Files" FILES ${srcs})

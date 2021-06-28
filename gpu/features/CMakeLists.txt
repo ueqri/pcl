@@ -15,7 +15,7 @@ endif()
 
 file(GLOB incs include/pcl/gpu/features/*.hpp)
 file(GLOB srcs src/*.cpp src/*.hpp)
-file(GLOB cuda src/*.cu)
+file(GLOB cuda src/*.cpp)
 file(GLOB dev_incs include/pcl/gpu/features/device/*.h*)
 source_group("Header Files\\device" FILES ${dev_incs})
 source_group("Source Files\\cuda" FILES ${cuda})

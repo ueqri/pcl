@@ -20,7 +20,7 @@ source_group("Source Files" FILES ${srcs})
 file(GLOB utils src/utils/*.hpp)
 source_group("Source Files\\utils" FILES ${utils})
 
-file(GLOB cuda src/cuda/*.h* src/cuda/*.cu)
+file(GLOB cuda src/cuda/*.h* src/cuda/*.cpp)
 source_group("Source Files\\cuda" FILES ${cuda})
 
 list(APPEND srcs ${utils} ${cuda})

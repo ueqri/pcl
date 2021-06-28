@@ -26,7 +26,7 @@ endif()
 REMOVE_VTK_DEFINITIONS()
 FILE(GLOB incs include/pcl/gpu/kinfu/*.h*)
 file(GLOB srcs src/*.cpp src/*.h*)
-file(GLOB cuda src/cuda/*.cu src/cuda/*.h*)
+file(GLOB cuda src/cuda/*.cpp src/cuda/*.h*)
 
 source_group("Source Files\\cuda" FILES ${cuda})
 source_group("Source Files" FILES ${srcs})

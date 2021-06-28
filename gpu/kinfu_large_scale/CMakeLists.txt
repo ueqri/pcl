@@ -27,7 +27,7 @@ REMOVE_VTK_DEFINITIONS()
 file(GLOB incs include/pcl/gpu/kinfu_large_scale/*.h*)
 file(GLOB impl_incs include/pcl/gpu/kinfu_large_scale/impl/*.h*)
 file(GLOB srcs src/*.cpp src/*.h*)
-file(GLOB cuda src/cuda/*.cu src/cuda/*.h*)
+file(GLOB cuda src/cuda/*.cpp src/cuda/*.h*)
 
 source_group("Source Files\\cuda" FILES ${cuda})
 source_group("Source Files" FILES ${srcs})
