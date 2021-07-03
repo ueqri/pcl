@@ -1,3 +1,4 @@
+#include "hip/hip_runtime.h"
 /*
  * Software License Agreement (BSD License)
  *
@@ -226,10 +227,10 @@ namespace pcl
         dim3 block (CorespSearch::CTA_SIZE_X, CorespSearch::CTA_SIZE_Y);
         dim3 grid (divUp (coresp.cols, block.x), divUp (coresp.rows, block.y));
 
-        corespKernel<<<grid, block>>>(cs);
+        hipLaunchKernelGGL(corespKernel, dim3(grid), dim3(block), 0, 0, cs);
 
-        cudaSafeCall ( cudaGetLastError () );
-        cudaSafeCall (cudaDeviceSynchronize ());
+        cudaSafeCall ( hipGetLastError () );
+        cudaSafeCall (hipDeviceSynchronize ());
       }
     }
   }

@@ -1,3 +1,4 @@
+#include "hip/hip_runtime.h"
 /*
  * Software License Agreement (BSD License)
  *
@@ -47,26 +48,26 @@ namespace pcl
 {
   namespace device
   {
-    //texture<int, 1, cudaReadModeElementType> edgeTex;
-    texture<int, 1, cudaReadModeElementType> triTex;
-    texture<int, 1, cudaReadModeElementType> numVertsTex;
+    //texture<int, 1, hipReadModeElementType> edgeTex;
+    texture<int, 1, hipReadModeElementType> triTex;
+    texture<int, 1, hipReadModeElementType> numVertsTex;
   }
 }
 
 void
 pcl::device::bindTextures (const int */*edgeBuf*/, const int *triBuf, const int *numVertsBuf)
 {
-  cudaChannelFormatDesc desc = cudaCreateChannelDesc<int>();
-  //cudaSafeCall(cudaBindTexture(0, edgeTex, edgeBuf, desc) );
-  cudaSafeCall (cudaBindTexture (0, triTex, triBuf, desc) );
-  cudaSafeCall (cudaBindTexture (0, numVertsTex, numVertsBuf, desc) );
+  hipChannelFormatDesc desc = hipCreateChannelDesc<int>();
+  //cudaSafeCall(hipBindTexture(0, edgeTex, edgeBuf, desc) );
+  cudaSafeCall (hipBindTexture (0, triTex, triBuf, desc) );
+  cudaSafeCall (hipBindTexture (0, numVertsTex, numVertsBuf, desc) );
 }
 void
 pcl::device::unbindTextures ()
 {
-  //cudaSafeCall( cudaUnbindTexture(edgeTex) );
-  cudaSafeCall ( cudaUnbindTexture (numVertsTex) );
-  cudaSafeCall ( cudaUnbindTexture (triTex) );
+  //cudaSafeCall( hipUnbindTexture(edgeTex) );
+  cudaSafeCall ( hipUnbindTexture (numVertsTex) );
+  cudaSafeCall ( hipUnbindTexture (triTex) );
 }
 
 namespace pcl
@@ -233,15 +234,15 @@ pcl::device::getOccupiedVoxels (const PtrStep<short2>& volume, DeviceArray2D<int
   dim3 block (OccupiedVoxels::CTA_SIZE_X, OccupiedVoxels::CTA_SIZE_Y);
   dim3 grid (divUp (VOLUME_X, block.x), divUp (VOLUME_Y, block.y));
 
-  //cudaFuncSetCacheConfig(getOccupiedVoxelsKernel, cudaFuncCachePreferL1);
+  //hipFuncSetCacheConfig(reinterpret_cast<const void*>(getOccupiedVoxelsKernel), hipFuncCachePreferL1);
   //printFuncAttrib(getOccupiedVoxelsKernel);
 
-  getOccupiedVoxelsKernel<<<grid, block>>>(ov);
-  cudaSafeCall ( cudaGetLastError () );
-  cudaSafeCall (cudaDeviceSynchronize ());
+  hipLaunchKernelGGL(getOccupiedVoxelsKernel, dim3(grid), dim3(block), 0, 0, ov);
+  cudaSafeCall ( hipGetLastError () );
+  cudaSafeCall (hipDeviceSynchronize ());
 
   int size;
-  cudaSafeCall ( cudaMemcpyFromSymbol (&size, output_count, sizeof(size)) );
+  cudaSafeCall ( hipMemcpyFromSymbol(&size, HIP_SYMBOL(output_count), sizeof(size)) );
   return size;
 }
 
@@ -384,10 +385,10 @@ void
 pcl::device::generateTriangles (const PtrStep<short2>& volume, const DeviceArray2D<int>& occupied_voxels, const float3& volume_size, DeviceArray<PointType>& output)
 {   
   int device;
-  cudaSafeCall( cudaGetDevice(&device) );
+  cudaSafeCall( hipGetDevice(&device) );
 
-  cudaDeviceProp prop;
-  cudaSafeCall( cudaGetDeviceProperties(&prop, device) );
+  hipDeviceProp_t prop;
+  cudaSafeCall( hipGetDeviceProperties(&prop, device) );
   
   int block_size = prop.major < 2 ? 96 : 256; // please see TrianglesGenerator::CTA_SIZE
 
@@ -408,7 +409,7 @@ pcl::device::generateTriangles (const PtrStep<short2>& volume, const DeviceArray
   dim3 block (block_size);
   dim3 grid(min(blocks_num, Tg::MAX_GRID_SIZE_X), divUp(blocks_num, Tg::MAX_GRID_SIZE_X));
 
-  trianglesGeneratorKernel<<<grid, block>>>(tg);
-  cudaSafeCall ( cudaGetLastError () );
-  cudaSafeCall (cudaDeviceSynchronize ());
+  hipLaunchKernelGGL(trianglesGeneratorKernel, dim3(grid), dim3(block), 0, 0, tg);
+  cudaSafeCall ( hipGetLastError () );
+  cudaSafeCall (hipDeviceSynchronize ());
 }

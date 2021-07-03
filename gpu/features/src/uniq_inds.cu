@@ -1,3 +1,4 @@
+#include "hip/hip_runtime.h"
 /*
  * Software License Agreement (BSD License)
  *
@@ -118,13 +119,13 @@ int pcl::device::computeUniqueIndices(std::size_t surface_size, const NeighborIn
     int block = IndsRepack::CTA_SIZE;
     int grid = divUp((int)neighbours.sizes.size(), IndsRepack::WARPS);
 
-    IndsRepackKernel<<<grid, block>>>(irpk);
-    cudaSafeCall( cudaGetLastError() );        
-    cudaSafeCall(cudaDeviceSynchronize());
+    hipLaunchKernelGGL(IndsRepackKernel, dim3(grid), dim3(block), 0, 0, irpk);
+    cudaSafeCall( hipGetLastError() );        
+    cudaSafeCall(hipDeviceSynchronize());
 
     int total;
-    cudaSafeCall( cudaMemcpyFromSymbol(&total, total_after_repack, sizeof(total)) );
-    cudaSafeCall(cudaDeviceSynchronize());
+    cudaSafeCall( hipMemcpyFromSymbol(&total, HIP_SYMBOL(total_after_repack), sizeof(total)) );
+    cudaSafeCall(hipDeviceSynchronize());
 
     thrust::device_ptr<int> begu(unique_indices.ptr());
     thrust::device_ptr<int> endu = begu + total;    
@@ -136,9 +137,9 @@ int pcl::device::computeUniqueIndices(std::size_t surface_size, const NeighborIn
     thrust::device_ptr<int> endl = begl + lookup.size();
     thrust::fill(begl, endl, 0);
     
-    createLookupKernel<<<divUp((int)unique_indices.size(), 256), 256>>>(unique_indices, total, lookup);
-    cudaSafeCall( cudaGetLastError() );        
-    cudaSafeCall(cudaDeviceSynchronize());
+    hipLaunchKernelGGL(createLookupKernel, dim3(divUp((int)unique_indices.size()), dim3(256)), 256, 0, unique_indices, total, lookup);
+    cudaSafeCall( hipGetLastError() );        
+    cudaSafeCall(hipDeviceSynchronize());
 
     return total;
 }

@@ -41,7 +41,7 @@
 
 #include "internal.hpp"
 
-#include "cuda.h"
+#include "hip/hip_runtime.h"
 
 using namespace thrust;
 

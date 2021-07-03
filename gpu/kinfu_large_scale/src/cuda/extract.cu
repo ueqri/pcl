@@ -1,3 +1,4 @@
+#include "hip/hip_runtime.h"
 /*
  * Software License Agreement (BSD License)
  *
@@ -441,13 +442,13 @@ namespace pcl
         dim3 block (CTA_SIZE_X, CTA_SIZE_Y);
         dim3 grid (divUp (VOLUME_X, block.x), divUp (VOLUME_Y, block.y));
 
-        extractKernel<<<grid, block>>>(fs);
-        cudaSafeCall ( cudaGetLastError () );
-        cudaSafeCall ( cudaDeviceSynchronize () );
+        hipLaunchKernelGGL(extractKernel, dim3(grid), dim3(block), 0, 0, fs);
+        cudaSafeCall ( hipGetLastError () );
+        cudaSafeCall ( hipDeviceSynchronize () );
 
         int size;
-        cudaSafeCall ( cudaMemcpyFromSymbol (&size, output_xyz_count, sizeof (size)) );
-      //  cudaSafeCall ( cudaMemcpyFromSymbol (&size, "output_xyz_count", sizeof (size)) );
+        cudaSafeCall ( hipMemcpyFromSymbol(&size, HIP_SYMBOL(output_xyz_count), sizeof (size)) );
+      //  cudaSafeCall ( hipMemcpyFromSymbol(&size, HIP_SYMBOL("output_xyz_count"), sizeof (size)) );
         return ((std::size_t)size);
       }
 
@@ -549,13 +550,13 @@ namespace pcl
         }
 
         // Extraction call
-        extractSliceKernel<<<grid, block>>>(fs, *buffer, minBounds, maxBounds);
+        hipLaunchKernelGGL(extractSliceKernel, dim3(grid), dim3(block), 0, 0, fs, *buffer, minBounds, maxBounds);
 
-        cudaSafeCall ( cudaGetLastError () );
-        cudaSafeCall ( cudaDeviceSynchronize () );
+        cudaSafeCall ( hipGetLastError () );
+        cudaSafeCall ( hipDeviceSynchronize () );
 
         int size;
-        cudaSafeCall ( cudaMemcpyFromSymbol (&size, output_xyz_count, sizeof(size)) );  
+        cudaSafeCall ( hipMemcpyFromSymbol(&size, HIP_SYMBOL(output_xyz_count), sizeof(size)) );  
         return (std::size_t)size;
       }
     }
@@ -725,9 +726,9 @@ namespace pcl
         dim3 block (256);
         dim3 grid (divUp (points.size, block.x));
 
-        extractNormalsKernel<<<grid, block>>>(en);
-        cudaSafeCall ( cudaGetLastError () );
-        cudaSafeCall (cudaDeviceSynchronize ());
+        hipLaunchKernelGGL(extractNormalsKernel, dim3(grid), dim3(block), 0, 0, en);
+        cudaSafeCall ( hipGetLastError () );
+        cudaSafeCall (hipDeviceSynchronize ());
       }
 
       template void extractNormals<PointType>(const PtrStep<short2>&volume, const float3 &volume_size, const PtrSz<PointType>&input, PointType * output);

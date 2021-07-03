@@ -1,3 +1,4 @@
+#include "hip/hip_runtime.h"
 /*
  * Software License Agreement (BSD License)
  *
@@ -396,9 +397,9 @@ void pcl::device::OctreeImpl::build()
     ssb.points_number = (int)codes.size();
     //printFuncAttrib(singleStepKernel);
 
-    cudaSafeCall( cudaFuncSetCacheConfig(singleStepKernel, cudaFuncCachePreferL1) );
+    cudaSafeCall( hipFuncSetCacheConfig(reinterpret_cast<const void*>(singleStepKernel), hipFuncCachePreferL1) );
 
-    singleStepKernel<<<GRID_SIZE, CTA_SIZE>>>(ssb);
-    cudaSafeCall( cudaGetLastError() );
-    cudaSafeCall( cudaDeviceSynchronize() );
+    hipLaunchKernelGGL(singleStepKernel, dim3(GRID_SIZE), dim3(CTA_SIZE), 0, 0, ssb);
+    cudaSafeCall( hipGetLastError() );
+    cudaSafeCall( hipDeviceSynchronize() );
 }

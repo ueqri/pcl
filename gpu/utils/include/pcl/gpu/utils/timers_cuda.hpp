@@ -37,7 +37,7 @@
 #ifndef _PCL_CUDA_TIMERS_HPP_
 #define _PCL_CUDA_TIMERS_HPP_
 
-#include <cuda_runtime_api.h>
+#include <hip/hip_runtime_api.h>
 #include <cstdio>
 
 namespace pcl
@@ -46,27 +46,27 @@ namespace pcl
     {
         struct Timer
         {
-            cudaEvent_t start_, stop_;
+            hipEvent_t start_, stop_;
             Timer(bool runTimer = false) 
             { 
-                cudaEventCreate(&start_); 
-                cudaEventCreate(&stop_);  
+                hipEventCreate(&start_); 
+                hipEventCreate(&stop_);  
                 if (runTimer)
                     start();
             }
             ~Timer() 
             { 
-                cudaEventDestroy(start_);  
-                cudaEventDestroy(stop_);
+                hipEventDestroy(start_);  
+                hipEventDestroy(stop_);
             }
 
-            void start() const { cudaEventRecord(start_, 0); }
-            Timer& stop()  { cudaEventRecord(stop_, 0); cudaEventSynchronize(stop_); return *this; }
+            void start() const { hipEventRecord(start_, 0); }
+            Timer& stop()  { hipEventRecord(stop_, 0); hipEventSynchronize(stop_); return *this; }
 
             float time() const
             {
                 float elapsed_time; 
-                cudaEventElapsedTime(&elapsed_time, start_, stop_);
+                hipEventElapsedTime(&elapsed_time, start_, stop_);
                 return elapsed_time;
             }
         };
@@ -74,22 +74,22 @@ namespace pcl
         struct ScopeTimer
         {
             const char* name;
-            cudaEvent_t start, stop;
+            hipEvent_t start, stop;
             ScopeTimer(const char* name_) : name(name_)
             {
-                cudaEventCreate(&start); 
-                cudaEventCreate(&stop);  
-                cudaEventRecord(start);
+                hipEventCreate(&start); 
+                hipEventCreate(&stop);  
+                hipEventRecord(start);
             }
             ~ScopeTimer()
             {
                 float elapsed_time; 
-                cudaEventRecord(stop);	
-                cudaEventSynchronize(stop);
-                cudaEventElapsedTime(&elapsed_time, start, stop);
+                hipEventRecord(stop);	
+                hipEventSynchronize(stop);
+                hipEventElapsedTime(&elapsed_time, start, stop);
                 printf("Time(%s) = %fms\n", name, elapsed_time);        
-                cudaEventDestroy(start);  
-                cudaEventDestroy(stop);
+                hipEventDestroy(start);  
+                hipEventDestroy(stop);
             }
         };
     }

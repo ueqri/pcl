@@ -42,7 +42,7 @@
 
 #include <pcl/common/time.h>
 #include <pcl/console/print.h>
-#include "cuda.h"
+#include "hip/hip_runtime.h"
 #include "emmintrin.h"
 
 #include <cassert>

@@ -45,7 +45,7 @@
 #include <thrust/count.h>
 #include <thrust/random.h>
 
-#include <vector_types.h>
+#include <hip/hip_vector_types.h>
 #include <stdio.h>
 #include <limits>
 

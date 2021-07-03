@@ -7,6 +7,7 @@ endif()
 
 set(CUDA_FIND_QUIETLY TRUE)
 find_package(CUDA 9.0)
+find_package(Threads REQUIRED)
 
 if(CUDA_FOUND)
   message(STATUS "Found CUDA Toolkit v${CUDA_VERSION_STRING}")

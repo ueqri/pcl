@@ -98,7 +98,7 @@ namespace pcl
       float operator () (int idx)
       {
         float depth = data_ [idx];
-#ifdef __CUDACC__        
+#ifdef __HIPCC__        
         if (depth == 0 | isnan(depth) | isinf(depth))
           return 0;
 #else
@@ -172,7 +172,7 @@ namespace pcl
         int nr = (int) dhel.x;
         float min_d = dhel.y;
         float max_d = dhel.z;
-#ifdef __CUDACC__        
+#ifdef __HIPCC__        
         if (depth == 0 | isnan(depth) | isinf(depth))
           return 0.0f;
 #else
@@ -243,7 +243,7 @@ namespace pcl
         float3 operator () (int idx)
       {
         float disparity = depth2disparity (data_ [idx]);
-#ifdef __CUDACC__         
+#ifdef __HIPCC__         
         if (disparity == 0 | isnan(disparity) | isinf(disparity))
           return make_float3 (0,0,0);
 #else

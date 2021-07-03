@@ -38,7 +38,7 @@
 #include <pcl_cuda/filters/filter.h>
 #include <thrust/count.h>
 #include <thrust/remove.h>
-#include <vector_types.h>
+#include <hip/hip_vector_types.h>
 
 namespace pcl_cuda
 {

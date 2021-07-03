@@ -1,3 +1,4 @@
+#include "hip/hip_runtime.h"
 /*
  * Software License Agreement (BSD License)
  *
@@ -137,15 +138,15 @@ void pcl::device::smoothLabelImage(const Labels& src, const Depth& depth, Labels
   dim3 grid(divUp(src.cols(), block.x), divUp(src.rows(), block.y));
 
   if (num_parts <= 28)
-    pcl::device::smoothKernel<28><<<grid, block>>>(src, depth, dst, patch_size, depthThres, num_parts);
+    hipLaunchKernelGGL(HIP_KERNEL_NAME(pcl::device::smoothKernel<28>), dim3(grid), dim3(block), 0, 0, src, depth, dst, patch_size, depthThres, num_parts);
   else
   if (num_parts <= 32)
-    pcl::device::smoothKernel<32><<<grid, block>>>(src, depth, dst, patch_size, depthThres, num_parts);
+    hipLaunchKernelGGL(HIP_KERNEL_NAME(pcl::device::smoothKernel<32>), dim3(grid), dim3(block), 0, 0, src, depth, dst, patch_size, depthThres, num_parts);
   else
     throw std::exception(); //should instantiate another smoothKernel<N>
 
-  cudaSafeCall( cudaGetLastError() );
-  cudaSafeCall( cudaDeviceSynchronize() );
+  cudaSafeCall( hipGetLastError() );
+  cudaSafeCall( hipDeviceSynchronize() );
 }
 
 

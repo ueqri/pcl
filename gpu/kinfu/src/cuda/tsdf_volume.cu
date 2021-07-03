@@ -1,3 +1,4 @@
+#include "hip/hip_runtime.h"
 /*
  * Software License Agreement (BSD License)
  *
@@ -72,9 +73,9 @@ pcl::device::initVolume (PtrStep<short2> volume)
   grid.x = divUp (VOLUME_X, block.x);      
   grid.y = divUp (VOLUME_Y, block.y);
 
-  initializeVolume<<<grid, block>>>(volume);
-  cudaSafeCall ( cudaGetLastError () );
-  cudaSafeCall (cudaDeviceSynchronize ());
+  hipLaunchKernelGGL(initializeVolume, dim3(grid), dim3(block), 0, 0, volume);
+  cudaSafeCall ( hipGetLastError () );
+  cudaSafeCall (hipDeviceSynchronize ());
 }
 
 namespace pcl
@@ -280,11 +281,11 @@ pcl::device::integrateTsdfVolume (const PtrStepSz<ushort>& depth_raw, const Intr
   dim3 grid (divUp (VOLUME_X, block.x), divUp (VOLUME_Y, block.y));
 
 #if 0
-   //tsdf2<<<grid, block>>>(volume, tranc_dist, Rcurr_inv, tcurr, intr, depth_raw, tsdf.cell_size);
-   integrateTsdfKernel<<<grid, block>>>(tsdf);
+   //hipLaunchKernelGGL(tsdf2, dim3(grid), dim3(block), 0, 0, volume, tranc_dist, Rcurr_inv, tcurr, intr, depth_raw, tsdf.cell_size);
+   hipLaunchKernelGGL(integrateTsdfKernel, dim3(grid), dim3(block), 0, 0, tsdf);
 #endif
-  cudaSafeCall ( cudaGetLastError () );
-  cudaSafeCall (cudaDeviceSynchronize ());
+  cudaSafeCall ( hipGetLastError () );
+  cudaSafeCall (hipDeviceSynchronize ());
 }
 
 
@@ -522,8 +523,8 @@ pcl::device::integrateTsdfVolume (const PtrStepSz<ushort>& depth, const Intr& in
   dim3 grid_scale (divUp (depth.cols, block_scale.x), divUp (depth.rows, block_scale.y));
 
   //scales depth along ray and converts mm -> meters. 
-  scaleDepth<<<grid_scale, block_scale>>>(depth, depthScaled, intr);
-  cudaSafeCall ( cudaGetLastError () );
+  hipLaunchKernelGGL(scaleDepth, dim3(grid_scale), dim3(block_scale), 0, 0, depth, depthScaled, intr);
+  cudaSafeCall ( hipGetLastError () );
 
   float3 cell_size;
   cell_size.x = volume_size.x / VOLUME_X;
@@ -534,9 +535,9 @@ pcl::device::integrateTsdfVolume (const PtrStepSz<ushort>& depth, const Intr& in
   dim3 block (16, 16);
   dim3 grid (divUp (VOLUME_X, block.x), divUp (VOLUME_Y, block.y));
 
-  tsdf23<<<grid, block>>>(depthScaled, volume, tranc_dist, Rcurr_inv, tcurr, intr, cell_size);    
-  //tsdf23normal_hack<<<grid, block>>>(depthScaled, volume, tranc_dist, Rcurr_inv, tcurr, intr, cell_size);
+  hipLaunchKernelGGL(tsdf23, dim3(grid), dim3(block), 0, 0, depthScaled, volume, tranc_dist, Rcurr_inv, tcurr, intr, cell_size);    
+  //hipLaunchKernelGGL(tsdf23normal_hack, dim3(grid), dim3(block), 0, 0, depthScaled, volume, tranc_dist, Rcurr_inv, tcurr, intr, cell_size);
 
-  cudaSafeCall ( cudaGetLastError () );
-  cudaSafeCall (cudaDeviceSynchronize ());
+  cudaSafeCall ( hipGetLastError () );
+  cudaSafeCall (hipDeviceSynchronize ());
 }

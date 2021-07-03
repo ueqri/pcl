@@ -1,3 +1,4 @@
+#include "hip/hip_runtime.h"
 /*
  * Software License Agreement (BSD License)
  *
@@ -145,9 +146,9 @@ namespace pcl
         grid.x = divUp (cols, block.x);
         grid.y = divUp (rows, block.y);
 
-        computeNmapKernelEigen<<<grid, block>>>(rows, cols, vmap, nmap);
-        cudaSafeCall (cudaGetLastError ());
-        cudaSafeCall (cudaDeviceSynchronize ());
+        hipLaunchKernelGGL(computeNmapKernelEigen, dim3(grid), dim3(block), 0, 0, rows, cols, vmap, nmap);
+        cudaSafeCall (hipGetLastError ());
+        cudaSafeCall (hipDeviceSynchronize ());
       }
     }
   }

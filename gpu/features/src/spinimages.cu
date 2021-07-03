@@ -1,3 +1,4 @@
+#include "hip/hip_runtime.h"
 /*
 * Software License Agreement (BSD License)
 *
@@ -50,7 +51,7 @@ namespace pcl
 	namespace device
 	{		
 		//[spinimage][angles] = [0..FSize][..FSize]
-		extern __shared__ float simage_angles[];
+		HIP_DYNAMIC_SHARED( float, simage_angles)
 		
 		template<class It> __device__ __forceinline__ float3 fetch(It ptr, int index) { return *(float3*)&ptr[index]; } 
 		//template<class It> __device__ __forceinline__ float3 fetch(It ptr, int index) { return tr(ptr[index]); }
@@ -301,9 +302,9 @@ namespace pcl
 			dim3 block(Impl::CTA_SIZE);			
 			dim3 grid(min(total, max_grid_dim), divUp(total, max_grid_dim));
 
-			computeSpinKernel<Impl><<<grid, block, smem_size>>>(impl);
-			cudaSafeCall( cudaGetLastError() );
-			cudaSafeCall( cudaDeviceSynchronize() );
+			hipLaunchKernelGGL(HIP_KERNEL_NAME(computeSpinKernel<Impl>), dim3(grid), dim3(block), smem_size, 0, impl);
+			cudaSafeCall( hipGetLastError() );
+			cudaSafeCall( hipDeviceSynchronize() );
 		}
 
 		template<bool radial, bool angular>
@@ -401,6 +402,6 @@ void pcl::device::computeMask(const NeighborIndices& neighbours, int min_neighb,
 	thrust::device_ptr<unsigned char> out(mask.ptr());
 	
 	thrust::transform(beg, end, out, GtThan(min_neighb));
-	cudaSafeCall( cudaGetLastError() );
-	cudaSafeCall( cudaDeviceSynchronize() );	
+	cudaSafeCall( hipGetLastError() );
+	cudaSafeCall( hipDeviceSynchronize() );	
 }

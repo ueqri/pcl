@@ -1,3 +1,4 @@
+#include "hip/hip_runtime.h"
 /*
  * Software License Agreement (BSD License)
  *
@@ -116,9 +117,9 @@ namespace pcl
         dim3 block (ImageGenerator::CTA_SIZE_X, ImageGenerator::CTA_SIZE_Y);
         dim3 grid (divUp (dst.cols, block.x), divUp (dst.rows, block.y));
 
-        generateImageKernel<<<grid, block>>>(ig);
-        cudaSafeCall (cudaGetLastError ());
-        cudaSafeCall (cudaDeviceSynchronize ());
+        hipLaunchKernelGGL(generateImageKernel, dim3(grid), dim3(block), 0, 0, ig);
+        cudaSafeCall (hipGetLastError ());
+        cudaSafeCall (hipDeviceSynchronize ());
       }      
     }
   }
@@ -162,9 +163,9 @@ namespace pcl
         dim3 block(32, 8);
         dim3 grid(divUp(dst.cols(), block.x), divUp(dst.rows(), block.y));
         
-        generateDepthKernel<<<grid, block>>>(R_inv.data[2], t, vmap, dst);
-        cudaSafeCall (cudaGetLastError ());
-        cudaSafeCall (cudaDeviceSynchronize ());  
+        hipLaunchKernelGGL(generateDepthKernel, dim3(grid), dim3(block), 0, 0, R_inv.data[2], t, vmap, dst);
+        cudaSafeCall (hipGetLastError ());
+        cudaSafeCall (hipDeviceSynchronize ());  
       }
     }
   }
@@ -211,9 +212,9 @@ namespace pcl
 
         colors_weight = min(1.f, max(0.f, colors_weight));
 
-        paint3DViewKernel<<<grid, block>>>(colors, dst, colors_weight);
-        cudaSafeCall (cudaGetLastError ());
-        cudaSafeCall (cudaDeviceSynchronize ());  
+        hipLaunchKernelGGL(paint3DViewKernel, dim3(grid), dim3(block), 0, 0, colors, dst, colors_weight);
+        cudaSafeCall (hipGetLastError ());
+        cudaSafeCall (hipDeviceSynchronize ());  
       }
     }
   }

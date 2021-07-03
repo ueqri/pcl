@@ -38,7 +38,7 @@
 #pragma once
 
 #include <pcl/cuda/common/point_type_rgb.h>
-#include <cuda.h>
+#include <hip/hip_runtime.h>
 
 namespace pcl
 {

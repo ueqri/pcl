@@ -1,3 +1,4 @@
+#include "hip/hip_runtime.h"
 /*
  * Software License Agreement (BSD License)
  *
@@ -234,10 +235,10 @@ void pcl::device::VFHEstimationImpl::compute(DeviceArray<VFHSignature308>& featu
 
 
     int device;
-    cudaSafeCall( cudaGetDevice(&device) );
+    cudaSafeCall( hipGetDevice(&device) );
     
-    cudaDeviceProp prop;    
-    cudaSafeCall( cudaGetDeviceProperties(&prop, device) );
+    hipDeviceProp_t prop;    
+    cudaSafeCall( hipGetDeviceProperties(&prop, device) );
     
     int total = static_cast<int> (indices.empty() ? points.size() : indices.size());
     int total_length_in_blocks = (total + VfhDevice::CTA_SIZE - 1) / VfhDevice::CTA_SIZE;
@@ -250,8 +251,8 @@ void pcl::device::VFHEstimationImpl::compute(DeviceArray<VFHSignature308>& featu
     vfh.global_buffer = global_buffer;
     vfh.output = (float*)feature.ptr();   
 
-    estimateVfhKernel<<<grid, block>>>(vfh);
-    cudaSafeCall( cudaGetLastError() );
-    cudaSafeCall( cudaDeviceSynchronize() );    
+    hipLaunchKernelGGL(estimateVfhKernel, dim3(grid), dim3(block), 0, 0, vfh);
+    cudaSafeCall( hipGetLastError() );
+    cudaSafeCall( hipDeviceSynchronize() );    
 }
 

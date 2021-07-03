@@ -36,7 +36,7 @@
 
 #pragma once
 
-#if defined(__CUDACC__)
+#if defined(__HIPCC__)
 #define __PCL_GPU_HOST_DEVICE__ __host__ __device__ __forceinline__
 #else
 #define __PCL_GPU_HOST_DEVICE__

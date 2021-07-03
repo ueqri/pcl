@@ -37,7 +37,7 @@
 
 #pragma once
 
-#include <cuda_runtime.h>
+#include <hip/hip_runtime.h>
 //#include <boost/graph/buffer_concepts.hpp>
     
 namespace pcl

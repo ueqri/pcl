@@ -1,3 +1,4 @@
+#include "hip/hip_runtime.h"
 /*
  * Software License Agreement (BSD License)
  *
@@ -186,10 +187,10 @@ void pcl::device::computeSPFH(const PointCloud& surface, const Normals& normals,
     int block = KernelBase::CTA_SIZE;
     int grid  = divUp((int)spfh.work_size, KernelBase::WAPRS);
 
-    SpfhKernel<<<grid, block>>>(spfh);
+    hipLaunchKernelGGL(SpfhKernel, dim3(grid), dim3(block), 0, 0, spfh);
 
-    cudaSafeCall( cudaGetLastError() );        
-    cudaSafeCall(cudaDeviceSynchronize());
+    cudaSafeCall( hipGetLastError() );        
+    cudaSafeCall(hipDeviceSynchronize());
 }
 
 namespace pcl
@@ -330,10 +331,10 @@ void pcl::device::computeFPFH(const PointCloud& cloud, const NeighborIndices& ne
     int block = KernelBase::CTA_SIZE;
     int grid  = divUp((int)fpfh.work_size, KernelBase::WAPRS);
 
-    FpfhKernel<<<grid, block>>>(fpfh);
+    hipLaunchKernelGGL(FpfhKernel, dim3(grid), dim3(block), 0, 0, fpfh);
 
-    cudaSafeCall( cudaGetLastError() );        
-    cudaSafeCall(cudaDeviceSynchronize());    
+    cudaSafeCall( hipGetLastError() );        
+    cudaSafeCall(hipDeviceSynchronize());    
 }
 
 void pcl::device::computeFPFH(const PointCloud& cloud, const Indices& indices, const PointCloud& surface, 
@@ -353,10 +354,10 @@ void pcl::device::computeFPFH(const PointCloud& cloud, const Indices& indices, c
     int block = KernelBase::CTA_SIZE;
     int grid  = divUp((int)fpfh.work_size, KernelBase::WAPRS);
 
-    FpfhKernel<<<grid, block>>>(fpfh);
+    hipLaunchKernelGGL(FpfhKernel, dim3(grid), dim3(block), 0, 0, fpfh);
 
-    cudaSafeCall( cudaGetLastError() );        
-    cudaSafeCall(cudaDeviceSynchronize());    
+    cudaSafeCall( hipGetLastError() );        
+    cudaSafeCall(hipDeviceSynchronize());    
 
 }
 

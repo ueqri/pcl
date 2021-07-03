@@ -1,3 +1,4 @@
+#include "hip/hip_runtime.h"
 /*
  * Software License Agreement (BSD License)
  *
@@ -195,9 +196,9 @@ void pcl::device::computePPF(const PointCloud& input, const Normals& normals, co
 
     int block = PpfImpl::CTA_SIZE;
     int grid = divUp(total, block);
-    estimatePpfKernel<<<grid, block>>>(ppf);
-    cudaSafeCall( cudaGetLastError() );
-    cudaSafeCall( cudaDeviceSynchronize() );
+    hipLaunchKernelGGL(estimatePpfKernel, dim3(grid), dim3(block), 0, 0, ppf);
+    cudaSafeCall( hipGetLastError() );
+    cudaSafeCall( hipDeviceSynchronize() );
 
     //printFuncAttrib(estimatePpfKernel);
 }
@@ -216,9 +217,9 @@ void pcl::device::computePPFRGB(const PointXYZRGBCloud& input, const Normals& no
 
     int block = PpfRgbImpl::CTA_SIZE;
     int grid = divUp(total, block);
-    estimatePpfRgbKernel<<<grid, block>>>(ppfrgb);
-    cudaSafeCall( cudaGetLastError() );
-    cudaSafeCall( cudaDeviceSynchronize() );
+    hipLaunchKernelGGL(estimatePpfRgbKernel, dim3(grid), dim3(block), 0, 0, ppfrgb);
+    cudaSafeCall( hipGetLastError() );
+    cudaSafeCall( hipDeviceSynchronize() );
 
     //printFuncAttrib(estimatePpfRgbKernel);
 }
@@ -356,10 +357,10 @@ void pcl::device::computePPFRGBRegion(const PointXYZRGBCloud& cloud, const Norma
     int block = PpfRgbRegionImpl::CTA_SIZE;
     int grid  = divUp((int)impl.indices.size, PpfRgbRegionImpl::WARPS);
 
-    estiamtePpfRgbRegionKernel<<<grid, block>>>(impl);
+    hipLaunchKernelGGL(estiamtePpfRgbRegionKernel, dim3(grid), dim3(block), 0, 0, impl);
 
-    cudaSafeCall( cudaGetLastError() );        
-    cudaSafeCall(cudaDeviceSynchronize());    
+    cudaSafeCall( hipGetLastError() );        
+    cudaSafeCall(hipDeviceSynchronize());    
 
     //printFuncAttrib(estiamtePpfRgbRegionKernel);
 }

@@ -39,7 +39,7 @@
 #include <pcl/gpu/utils/safe_call.hpp>
 
 #include "internal.hpp"
-#include "cuda_runtime.h"
+#include "hip/hip_runtime.h"
 #include <pcl/gpu/utils/device/static_check.hpp>
 #include <pcl/exceptions.h>
 
@@ -55,10 +55,10 @@ pcl::gpu::Octree::Octree() : cloud_(nullptr), impl(nullptr)
     Static<sizeof(PointType) == sizeof(OctreeImpl::PointType)>::check();
 
     int device;
-    cudaSafeCall( cudaGetDevice( &device ) );
+    cudaSafeCall( hipGetDevice( &device ) );
     
-    cudaDeviceProp prop;
-    cudaSafeCall( cudaGetDeviceProperties( &prop, device) );
+    hipDeviceProp_t prop;
+    cudaSafeCall( hipGetDeviceProperties( &prop, device) );
 
     if (prop.major < 2)
         pcl::gpu::error("This code requires devices with compute capability >= 2.0", __FILE__, __LINE__);
@@ -68,10 +68,9 @@ pcl::gpu::Octree::Octree() : cloud_(nullptr), impl(nullptr)
 
     if (bin < 0 || ptx < 0)
     {
-        pcl::gpu::error(R"(cudaFuncGetAttributes() returned a value < 0.
+        pcl::gpu::error(R"(hipFuncGetAttributes() returned a value < 0.
 This is likely a build configuration error.
-Ensure that the proper compute capability is specified in the CUDA_ARCH_BIN cmake variable when building for your GPU.)",
-            __FILE__, __LINE__);
+Ensure that the proper compute capability is specified in the CUDA_ARCH_BIN cmake variable when building for your GPU.)", reinterpret_cast<const void*>(__FILE__), __LINE__);
     }
 
     if (bin < 20 && ptx < 20)

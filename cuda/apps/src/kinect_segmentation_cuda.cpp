@@ -224,7 +224,7 @@ class Segmentation
           constexpr float focallength = 580/2.0;
           normals = computePointNormals<Storage> (data->points.begin (), data->points.end (), focallength, data, radius_cm / 100.0f, nr_neighbors);
         }
-        cudaDeviceSynchronize ();
+        hipDeviceSynchronize ();
       }
 
       // retrieve normals as an image..

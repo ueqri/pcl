@@ -35,7 +35,7 @@
 
 #pragma once
 
-#include <cuda.h>
+#include <hip/hip_runtime.h>
 #include <pcl/cuda/cutil_math.h>
 
 #ifdef RGB

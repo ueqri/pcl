@@ -1,3 +1,4 @@
+#include "hip/hip_runtime.h"
 /*
  * Software License Agreement (BSD License)
  *
@@ -39,7 +40,7 @@
  */
 
 
-#include <cuda_runtime.h>
+#include <hip/hip_runtime.h>
 #include <stdio.h>
 #include "NCV.hpp"
 #include "NCVAlg.hpp"
@@ -204,30 +205,30 @@ namespace cv { namespace gpu { namespace device
 {
     namespace pyramid
     {
-        template <typename T> void kernelDownsampleX2_gpu(DevMem2Db src, DevMem2Db dst, cudaStream_t stream)
+        template <typename T> void kernelDownsampleX2_gpu(DevMem2Db src, DevMem2Db dst, hipStream_t stream)
         {
             dim3 bDim(16, 8);
             dim3 gDim(divUp(src.cols, bDim.x), divUp(src.rows, bDim.y));
 
-            kernelDownsampleX2<<<gDim, bDim, 0, stream>>>((T*)src.data, src.step, (T*)dst.data, dst.step, NcvSize32u(dst.cols, dst.rows));
+            hipLaunchKernelGGL(kernelDownsampleX2, dim3(gDim), dim3(bDim), 0, stream, (T*)src.data, src.step, (T*)dst.data, dst.step, NcvSize32u(dst.cols, dst.rows));
 
-            cudaSafeCall( cudaGetLastError() );
+            cudaSafeCall( hipGetLastError() );
 
             if (stream == 0)
-                cudaSafeCall( cudaDeviceSynchronize() );
+                cudaSafeCall( hipDeviceSynchronize() );
         }
 
-        template void kernelDownsampleX2_gpu<uchar1>(DevMem2Db src, DevMem2Db dst, cudaStream_t stream);
-        template void kernelDownsampleX2_gpu<uchar3>(DevMem2Db src, DevMem2Db dst, cudaStream_t stream);
-        template void kernelDownsampleX2_gpu<uchar4>(DevMem2Db src, DevMem2Db dst, cudaStream_t stream);
+        template void kernelDownsampleX2_gpu<uchar1>(DevMem2Db src, DevMem2Db dst, hipStream_t stream);
+        template void kernelDownsampleX2_gpu<uchar3>(DevMem2Db src, DevMem2Db dst, hipStream_t stream);
+        template void kernelDownsampleX2_gpu<uchar4>(DevMem2Db src, DevMem2Db dst, hipStream_t stream);
 
-        template void kernelDownsampleX2_gpu<ushort1>(DevMem2Db src, DevMem2Db dst, cudaStream_t stream);
-        template void kernelDownsampleX2_gpu<ushort3>(DevMem2Db src, DevMem2Db dst, cudaStream_t stream);
-        template void kernelDownsampleX2_gpu<ushort4>(DevMem2Db src, DevMem2Db dst, cudaStream_t stream);
+        template void kernelDownsampleX2_gpu<ushort1>(DevMem2Db src, DevMem2Db dst, hipStream_t stream);
+        template void kernelDownsampleX2_gpu<ushort3>(DevMem2Db src, DevMem2Db dst, hipStream_t stream);
+        template void kernelDownsampleX2_gpu<ushort4>(DevMem2Db src, DevMem2Db dst, hipStream_t stream);
 
-        template void kernelDownsampleX2_gpu<float1>(DevMem2Db src, DevMem2Db dst, cudaStream_t stream);
-        template void kernelDownsampleX2_gpu<float3>(DevMem2Db src, DevMem2Db dst, cudaStream_t stream);
-        template void kernelDownsampleX2_gpu<float4>(DevMem2Db src, DevMem2Db dst, cudaStream_t stream);
+        template void kernelDownsampleX2_gpu<float1>(DevMem2Db src, DevMem2Db dst, hipStream_t stream);
+        template void kernelDownsampleX2_gpu<float3>(DevMem2Db src, DevMem2Db dst, hipStream_t stream);
+        template void kernelDownsampleX2_gpu<float4>(DevMem2Db src, DevMem2Db dst, hipStream_t stream);
     }
 }}} */
 
@@ -277,31 +278,31 @@ namespace cv { namespace gpu { namespace device
 {
     namespace pyramid
     {
-        template <typename T> void kernelInterpolateFrom1_gpu(DevMem2Db src, DevMem2Db dst, cudaStream_t stream)
+        template <typename T> void kernelInterpolateFrom1_gpu(DevMem2Db src, DevMem2Db dst, hipStream_t stream)
         {
             dim3 bDim(16, 8);
             dim3 gDim(divUp(dst.cols, bDim.x), divUp(dst.rows, bDim.y));
 
-            kernelInterpolateFrom1<<<gDim, bDim, 0, stream>>>((T*) src.data, src.step, NcvSize32u(src.cols, src.rows), 
+            hipLaunchKernelGGL(kernelInterpolateFrom1, dim3(gDim), dim3(bDim), 0, stream, (T*) src.data, src.step, NcvSize32u(src.cols, src.rows), 
                 (T*) dst.data, dst.step, NcvSize32u(dst.cols, dst.rows));
 
-            cudaSafeCall( cudaGetLastError() );
+            cudaSafeCall( hipGetLastError() );
 
             if (stream == 0)
-                cudaSafeCall( cudaDeviceSynchronize() );
+                cudaSafeCall( hipDeviceSynchronize() );
         }
 
-        template void kernelInterpolateFrom1_gpu<uchar1>(DevMem2Db src, DevMem2Db dst, cudaStream_t stream);
-        template void kernelInterpolateFrom1_gpu<uchar3>(DevMem2Db src, DevMem2Db dst, cudaStream_t stream);
-        template void kernelInterpolateFrom1_gpu<uchar4>(DevMem2Db src, DevMem2Db dst, cudaStream_t stream);
+        template void kernelInterpolateFrom1_gpu<uchar1>(DevMem2Db src, DevMem2Db dst, hipStream_t stream);
+        template void kernelInterpolateFrom1_gpu<uchar3>(DevMem2Db src, DevMem2Db dst, hipStream_t stream);
+        template void kernelInterpolateFrom1_gpu<uchar4>(DevMem2Db src, DevMem2Db dst, hipStream_t stream);
 
-        template void kernelInterpolateFrom1_gpu<ushort1>(DevMem2Db src, DevMem2Db dst, cudaStream_t stream);
-        template void kernelInterpolateFrom1_gpu<ushort3>(DevMem2Db src, DevMem2Db dst, cudaStream_t stream);
-        template void kernelInterpolateFrom1_gpu<ushort4>(DevMem2Db src, DevMem2Db dst, cudaStream_t stream);
+        template void kernelInterpolateFrom1_gpu<ushort1>(DevMem2Db src, DevMem2Db dst, hipStream_t stream);
+        template void kernelInterpolateFrom1_gpu<ushort3>(DevMem2Db src, DevMem2Db dst, hipStream_t stream);
+        template void kernelInterpolateFrom1_gpu<ushort4>(DevMem2Db src, DevMem2Db dst, hipStream_t stream);
 
-        template void kernelInterpolateFrom1_gpu<float1>(DevMem2Db src, DevMem2Db dst, cudaStream_t stream);
-        template void kernelInterpolateFrom1_gpu<float3>(DevMem2Db src, DevMem2Db dst, cudaStream_t stream);
-        template void kernelInterpolateFrom1_gpu<float4>(DevMem2Db src, DevMem2Db dst, cudaStream_t stream);
+        template void kernelInterpolateFrom1_gpu<float1>(DevMem2Db src, DevMem2Db dst, hipStream_t stream);
+        template void kernelInterpolateFrom1_gpu<float3>(DevMem2Db src, DevMem2Db dst, hipStream_t stream);
+        template void kernelInterpolateFrom1_gpu<float4>(DevMem2Db src, DevMem2Db dst, hipStream_t stream);
     }
 }}} */
 
@@ -341,7 +342,7 @@ template <class T>
 NCVImagePyramid<T>::NCVImagePyramid(const NCVMatrix<T> &img,
                                     Ncv8u numLayers,
                                     INCVMemAllocator &alloc,
-                                    cudaStream_t cuStream)
+                                    hipStream_t cuStream)
 {
     this->_isInitialized = false;
     ncvAssertPrintReturn(img.memType() == alloc.memType(), "NCVImagePyramid::ctor error", );
@@ -384,12 +385,12 @@ NCVImagePyramid<T>::NCVImagePyramid(const NCVMatrix<T> &img,
         {
             dim3 bDim(16, 8);
             dim3 gDim(divUp(szCurLayer.width, bDim.x), divUp(szCurLayer.height, bDim.y));
-            kernelDownsampleX2<<<gDim, bDim, 0, cuStream>>>(prevLayer->ptr(),
+            hipLaunchKernelGGL(kernelDownsampleX2, dim3(gDim), dim3(bDim), 0, cuStream, prevLayer->ptr(),
                                                             prevLayer->pitch(),
                                                             curLayer->ptr(),
                                                             curLayer->pitch(),
                                                             szCurLayer);
-            ncvAssertPrintReturn(cudaSuccess == cudaGetLastError(), "NCVImagePyramid::ctor error", );
+            ncvAssertPrintReturn(hipSuccess == hipGetLastError(), "NCVImagePyramid::ctor error", );
 
 #ifdef SELF_CHECK_GPU
             NCVMatrixAlloc<T> h_prevLayer(allocCPU, prevLayer->width(), prevLayer->height());
@@ -398,7 +399,7 @@ NCVImagePyramid<T>::NCVImagePyramid(const NCVMatrix<T> &img,
             ncvAssertPrintReturn(h_curLayer.isMemAllocated(), "Validation failure in NCVImagePyramid::ctor", );
             ncvAssertPrintReturn(NCV_SUCCESS == prevLayer->copy2D(h_prevLayer, prevLayer->size(), cuStream), "Validation failure in NCVImagePyramid::ctor", );
             ncvAssertPrintReturn(NCV_SUCCESS == curLayer->copy2D(h_curLayer, curLayer->size(), cuStream), "Validation failure in NCVImagePyramid::ctor", );
-            ncvAssertPrintReturn(cudaSuccess == cudaStreamSynchronize(cuStream), "Validation failure in NCVImagePyramid::ctor", );
+            ncvAssertPrintReturn(hipSuccess == hipStreamSynchronize(cuStream), "Validation failure in NCVImagePyramid::ctor", );
             for (Ncv32u i=0; i<szCurLayer.height; i++)
             {
                 for (Ncv32u j=0; j<szCurLayer.width; j++)
@@ -452,7 +453,7 @@ template <class T>
 NCVStatus NCVImagePyramid<T>::getLayer(NCVMatrix<T> &outImg,
                                        NcvSize32u outRoi,
                                        NcvBool bTrilinear,
-                                       cudaStream_t cuStream) const
+                                       hipStream_t cuStream) const
 {
     ncvAssertReturn(this->isInitialized(), NCV_UNKNOWN_ERROR);
     ncvAssertReturn(outImg.memType() == this->layer0->memType(), NCV_MEM_RESIDENCE_ERROR);
@@ -512,20 +513,20 @@ NCVStatus NCVImagePyramid<T>::getLayer(NCVMatrix<T> &outImg,
 
         dim3 bDim(16, 8);
         dim3 gDim(divUp(outRoi.width, bDim.x), divUp(outRoi.height, bDim.y));
-        kernelInterpolateFrom1<<<gDim, bDim, 0, cuStream>>>(lastLayer->ptr(),
+        hipLaunchKernelGGL(kernelInterpolateFrom1, dim3(gDim), dim3(bDim), 0, cuStream, lastLayer->ptr(),
                                                             lastLayer->pitch(),
                                                             lastLayer->size(),
                                                             outImg.ptr(),
                                                             outImg.pitch(),
                                                             outRoi);
-        ncvAssertCUDAReturn(cudaGetLastError(), NCV_CUDA_ERROR);
+        ncvAssertCUDAReturn(hipGetLastError(), NCV_CUDA_ERROR);
 
 #ifdef SELF_CHECK_GPU
         ncvSafeMatAlloc(h_lastLayer, T, allocCPU, lastLayer->width(), lastLayer->height(), NCV_ALLOCATOR_BAD_ALLOC);
         ncvSafeMatAlloc(h_outImg, T, allocCPU, outImg.width(), outImg.height(), NCV_ALLOCATOR_BAD_ALLOC);
         ncvAssertReturnNcvStat(lastLayer->copy2D(h_lastLayer, lastLayer->size(), cuStream));
         ncvAssertReturnNcvStat(outImg.copy2D(h_outImg, outRoi, cuStream));
-        ncvAssertCUDAReturn(cudaStreamSynchronize(cuStream), NCV_CUDA_ERROR);
+        ncvAssertCUDAReturn(hipStreamSynchronize(cuStream), NCV_CUDA_ERROR);
 
         for (Ncv32u i=0; i<outRoi.height; i++)
         {

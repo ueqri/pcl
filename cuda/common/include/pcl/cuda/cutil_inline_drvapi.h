@@ -25,24 +25,24 @@
 #define cutilDrvAlignOffset(offset, alignment)  ( offset = (offset + (alignment-1)) & ~((alignment-1)) )
 
 // These are the inline versions for all of the CUTIL functions
-inline void __cuSafeCallNoSync( CUresult err, const char *file, const int line )
+inline void __cuSafeCallNoSync( hipError_t err, const char *file, const int line )
 {
-    if( CUDA_SUCCESS != err) {
+    if( hipSuccess != err) {
         fprintf(stderr, "cuSafeCallNoSync() Driver API error = %04d from file <%s>, line %i.\n",
                 err, file, line );
         exit(-1);
     }
 }
-inline void __cuSafeCall( CUresult err, const char *file, const int line )
+inline void __cuSafeCall( hipError_t err, const char *file, const int line )
 {
     __cuSafeCallNoSync( err, file, line );
 }
 
 inline void __cuCtxSync(const char *file, const int line )
 {
-    CUresult err = cuCtxSynchronize();
-    if( CUDA_SUCCESS != err ) {
-        fprintf(stderr, "cuCtxSynchronize() API error = %04d in file <%s>, line %i.\n",
+    hipError_t err = hipCtxSynchronize();
+    if( hipSuccess != err ) {
+        fprintf(stderr, "hipCtxSynchronize() API error = %04d in file <%s>, line %i.\n",
                 err, file, line );
         exit(-1);
     }
@@ -85,21 +85,21 @@ inline int _ConvertSMVer2CoresDrvApi(int major, int minor)
 // This function returns the best GPU based on performance
 inline int cutilDrvGetMaxGflopsDeviceId()
 {
-    CUdevice current_device = 0;
-    CUdevice max_perf_device = 0;
+    hipDevice_t current_device = 0;
+    hipDevice_t max_perf_device = 0;
     int device_count     = 0;
     int max_compute_perf = 0;
     int best_SM_arch     = 0;
 
-    cuInit(0);
-    cutilDrvSafeCallNoSync(cuDeviceGetCount(&device_count));
+    hipInit(0);
+    cutilDrvSafeCallNoSync(hipGetDeviceCount(&device_count));
 
 	// Find the best major SM Architecture GPU device
 	while ( current_device < device_count ) {
 		int major = 0;
 	        int minor = 0;
-		cutilDrvSafeCallNoSync (cuDeviceGetAttribute (&major, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR, current_device));
-		cutilDrvSafeCallNoSync (cuDeviceGetAttribute (&minor, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MINOR, current_device));
+		cutilDrvSafeCallNoSync (hipDeviceGetAttribute (&major, hipDeviceAttributeComputeCapabilityMajor, current_device));
+		cutilDrvSafeCallNoSync (hipDeviceGetAttribute (&minor, hipDeviceAttributeComputeCapabilityMinor, current_device));
 		if (major > 0 && major < 9999) {
 			best_SM_arch = MAX(best_SM_arch, major);
 		}
@@ -113,14 +113,14 @@ inline int cutilDrvGetMaxGflopsDeviceId()
                 int clockRate;
                 int major = 0;
                 int minor = 0;              
-		cutilDrvSafeCallNoSync( cuDeviceGetAttribute( &multiProcessorCount, 
-                                                            CU_DEVICE_ATTRIBUTE_MULTIPROCESSOR_COUNT, 
+		cutilDrvSafeCallNoSync( hipDeviceGetAttribute( &multiProcessorCount, 
+                                                            hipDeviceAttributeMultiprocessorCount, 
                                                             current_device ) );
-        	cutilDrvSafeCallNoSync( cuDeviceGetAttribute( &clockRate, 
-                                                            CU_DEVICE_ATTRIBUTE_CLOCK_RATE, 
+        	cutilDrvSafeCallNoSync( hipDeviceGetAttribute( &clockRate, 
+                                                            hipDeviceAttributeClockRate, 
                                                             current_device ) );
-        	cutilDrvSafeCallNoSync (cuDeviceGetAttribute (&major, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR, current_device));
-        	cutilDrvSafeCallNoSync (cuDeviceGetAttribute (&minor, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MINOR, current_device));
+        	cutilDrvSafeCallNoSync (hipDeviceGetAttribute (&major, hipDeviceAttributeComputeCapabilityMajor, current_device));
+        	cutilDrvSafeCallNoSync (hipDeviceGetAttribute (&minor, hipDeviceAttributeComputeCapabilityMinor, current_device));
 
         	int sm_per_multiproc = (major == 9999 && minor == 9999) ? 1 : _ConvertSMVer2CoresDrvApi(major, minor);
 
@@ -147,14 +147,14 @@ inline int cutilDrvGetMaxGflopsDeviceId()
 // This function returns the best Graphics GPU based on performance
 inline int cutilDrvGetMaxGflopsGraphicsDeviceId()
 {
-    CUdevice current_device = 0;
-    CUdevice max_perf_device = 0;
+    hipDevice_t current_device = 0;
+    hipDevice_t max_perf_device = 0;
     int device_count     = 0;
     int max_compute_perf = 0;
     int best_SM_arch     = 0;
 
-    cuInit(0);
-    cutilDrvSafeCallNoSync(cuDeviceGetCount(&device_count));
+    hipInit(0);
+    cutilDrvSafeCallNoSync(hipGetDeviceCount(&device_count));
 
 	// Find the best major SM Architecture GPU device that are graphics devices
 	while ( current_device < device_count ) {
@@ -162,10 +162,10 @@ inline int cutilDrvGetMaxGflopsGraphicsDeviceId()
               	int major = 0;
               	int minor = 0;
               	int bTCC = 0;
-		cutilDrvSafeCallNoSync( cuDeviceGetName(deviceName, 256, current_device) );
-		cutilDrvSafeCallNoSync (cuDeviceGetAttribute (&major, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR, current_device));
-		cutilDrvSafeCallNoSync (cuDeviceGetAttribute (&minor, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MINOR, current_device));
-		cutilDrvSafeCallNoSync( cuDeviceGetAttribute(&bTCC, CU_DEVICE_ATTRIBUTE_TCC_DRIVER, current_device) );
+		cutilDrvSafeCallNoSync( hipDeviceGetName(deviceName, 256, current_device) );
+		cutilDrvSafeCallNoSync (hipDeviceGetAttribute (&major, hipDeviceAttributeComputeCapabilityMajor, current_device));
+		cutilDrvSafeCallNoSync (hipDeviceGetAttribute (&minor, hipDeviceAttributeComputeCapabilityMinor, current_device));
+		cutilDrvSafeCallNoSync( hipDeviceGetAttribute(&bTCC, CU_DEVICE_ATTRIBUTE_TCC_DRIVER, current_device) );
 
 		if (!bTCC) {
 			if (major > 0 && major < 9999) {
@@ -183,16 +183,16 @@ inline int cutilDrvGetMaxGflopsGraphicsDeviceId()
               	int major = 0;
               	int minor = 0;
               	int bTCC = 0;
-		cutilDrvSafeCallNoSync( cuDeviceGetAttribute( &multiProcessorCount, 
-                                                            CU_DEVICE_ATTRIBUTE_MULTIPROCESSOR_COUNT, 
+		cutilDrvSafeCallNoSync( hipDeviceGetAttribute( &multiProcessorCount, 
+                                                            hipDeviceAttributeMultiprocessorCount, 
                                                             current_device ) );
-        	cutilDrvSafeCallNoSync( cuDeviceGetAttribute( &clockRate, 
-                                                            CU_DEVICE_ATTRIBUTE_CLOCK_RATE, 
+        	cutilDrvSafeCallNoSync( hipDeviceGetAttribute( &clockRate, 
+                                                            hipDeviceAttributeClockRate, 
                                                             current_device ) );
-        	cutilDrvSafeCallNoSync (cuDeviceGetAttribute (&major, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR, current_device));
-        	cutilDrvSafeCallNoSync (cuDeviceGetAttribute (&minor, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MINOR, current_device));
+        	cutilDrvSafeCallNoSync (hipDeviceGetAttribute (&major, hipDeviceAttributeComputeCapabilityMajor, current_device));
+        	cutilDrvSafeCallNoSync (hipDeviceGetAttribute (&minor, hipDeviceAttributeComputeCapabilityMinor, current_device));
 
-		cutilDrvSafeCallNoSync( cuDeviceGetAttribute( &bTCC,  CU_DEVICE_ATTRIBUTE_TCC_DRIVER, current_device ) );
+		cutilDrvSafeCallNoSync( hipDeviceGetAttribute( &bTCC,  CU_DEVICE_ATTRIBUTE_TCC_DRIVER, current_device ) );
 
               	int sm_per_multiproc = (major == 9999 && minor == 9999) ? 1 : _ConvertSMVer2CoresDrvApi(major, minor);
 
@@ -222,10 +222,10 @@ inline int cutilDrvGetMaxGflopsGraphicsDeviceId()
 
 inline void __cuCheckMsg( const char * msg, const char *file, const int line )
 {
-    CUresult err = cuCtxSynchronize();
-    if( CUDA_SUCCESS != err) {
+    hipError_t err = hipCtxSynchronize();
+    if( hipSuccess != err) {
 	fprintf(stderr, "cutilDrvCheckMsg -> %s", msg);
-        fprintf(stderr, "cutilDrvCheckMsg -> cuCtxSynchronize API error = %04d in file <%s>, line %i.\n",
+        fprintf(stderr, "cutilDrvCheckMsg -> hipCtxSynchronize API error = %04d in file <%s>, line %i.\n",
                 err, file, line );
         exit(-1);
     }
@@ -239,9 +239,9 @@ inline void __cuCheckMsg( const char * msg, const char *file, const int line )
     {
         int cuDevice = 0;
         int deviceCount = 0;
-        CUresult err = cuInit(0);
-        if (CUDA_SUCCESS == err)
-            cutilDrvSafeCallNoSync(cuDeviceGetCount(&deviceCount));
+        hipError_t err = hipInit(0);
+        if (hipSuccess == err)
+            cutilDrvSafeCallNoSync(hipGetDeviceCount(&deviceCount));
         if (deviceCount == 0) {
             fprintf(stderr, "CUTIL DeviceInitDrv error: no devices supporting CUDA\n");
             exit(-1);
@@ -256,9 +256,9 @@ inline void __cuCheckMsg( const char * msg, const char *file, const int line )
 		fprintf(stderr, "\n");
             	return -dev;
         }
-        cutilDrvSafeCallNoSync(cuDeviceGet(&cuDevice, dev));
+        cutilDrvSafeCallNoSync(hipDeviceGet(&cuDevice, dev));
         char name[100];
-        cuDeviceGetName(name, 100, cuDevice);
+        hipDeviceGetName(name, 100, cuDevice);
         if (cutCheckCmdLineFlag(ARGC, (const char **) ARGV, "quiet") == CUTFalse) {
            printf("> Using CUDA Device [%d]: %s\n", dev, name);
        	}
@@ -268,11 +268,11 @@ inline void __cuCheckMsg( const char * msg, const char *file, const int line )
 
     // General initialization call to pick the best CUDA Device
 #if __DEVICE_EMULATION__
-    inline CUdevice cutilChooseCudaDeviceDrv(int argc, char **argv, int *p_devID)
+    inline hipDevice_t cutilChooseCudaDeviceDrv(int argc, char **argv, int *p_devID)
 #else
-    inline CUdevice cutilChooseCudaDeviceDrv(int argc, char **argv, int *p_devID)
+    inline hipDevice_t cutilChooseCudaDeviceDrv(int argc, char **argv, int *p_devID)
     {
-        CUdevice cuDevice;
+        hipDevice_t cuDevice;
         int devID = 0;
         // If the command-line has a device number specified, use it
         if( cutCheckCmdLineFlag(argc, (const char**)argv, "device") ) {
@@ -285,11 +285,11 @@ inline void __cuCheckMsg( const char * msg, const char *file, const int line )
             // Otherwise pick the device with highest Gflops/s
             char name[100];
             devID = cutilDrvGetMaxGflopsDeviceId();
-            cutilDrvSafeCallNoSync(cuDeviceGet(&cuDevice, devID));
-            cuDeviceGetName(name, 100, cuDevice);
+            cutilDrvSafeCallNoSync(hipDeviceGet(&cuDevice, devID));
+            hipDeviceGetName(name, 100, cuDevice);
             printf("> Using CUDA Device [%d]: %s\n", devID, name);
         }
-        cuDeviceGet(&cuDevice, devID);
+        hipDeviceGet(&cuDevice, devID);
         if (p_devID) *p_devID = devID;
         return cuDevice;
     }
@@ -299,14 +299,14 @@ inline void __cuCheckMsg( const char * msg, const char *file, const int line )
 //! Check for CUDA context lost
 inline void cutilDrvCudaCheckCtxLost(const char *errorMessage, const char *file, const int line ) 
 {
-    CUresult err = cuCtxSynchronize();
-    if( CUDA_ERROR_INVALID_CONTEXT != err) {
+    hipError_t err = hipCtxSynchronize();
+    if( hipErrorInvalidContext != err) {
         fprintf(stderr, "Cuda error: %s in file '%s' in line %i\n",
         errorMessage, file, line );
         exit(-1);
     }
-    err = cuCtxSynchronize();
-    if( CUDA_SUCCESS != err) {
+    err = hipCtxSynchronize();
+    if( hipSuccess != err) {
         fprintf(stderr, "Cuda error: %s in file '%s' in line %i\n",
         errorMessage, file, line );
         exit(-1);
@@ -358,10 +358,10 @@ inline bool cutilDrvCudaDevCapabilities(int major_version, int minor_version, in
     printf("> Compute Device Emulation Mode \n");
 #endif
 
-    cutilDrvSafeCallNoSync( cuDeviceGet(&dev, deviceNum) );
-    cutilDrvSafeCallNoSync (cuDeviceGetAttribute (&major, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR, dev));
-    cutilDrvSafeCallNoSync (cuDeviceGetAttribute (&minor, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MINOR, dev));
-    cutilDrvSafeCallNoSync( cuDeviceGetName(device_name, 256, dev) ); 
+    cutilDrvSafeCallNoSync( hipDeviceGet(&dev, deviceNum) );
+    cutilDrvSafeCallNoSync (hipDeviceGetAttribute (&major, hipDeviceAttributeComputeCapabilityMajor, dev));
+    cutilDrvSafeCallNoSync (hipDeviceGetAttribute (&minor, hipDeviceAttributeComputeCapabilityMinor, dev));
+    cutilDrvSafeCallNoSync( hipDeviceGetName(device_name, 256, dev) ); 
 
     if((major > major_version) ||
 	   (major == major_version && minor >= minor_version))

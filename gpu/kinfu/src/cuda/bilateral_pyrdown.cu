@@ -1,3 +1,4 @@
+#include "hip/hip_runtime.h"
 /*
  * Software License Agreement (BSD License)
  *
@@ -182,10 +183,10 @@ pcl::device::bilateralFilter (const DepthMap& src, DepthMap& dst)
   dim3 block (32, 8);
   dim3 grid (divUp (src.cols (), block.x), divUp (src.rows (), block.y));
 
-  cudaFuncSetCacheConfig (bilateralKernel, cudaFuncCachePreferL1);
-  bilateralKernel<<<grid, block>>>(src, dst, 0.5f / (sigma_space * sigma_space), 0.5f / (sigma_color * sigma_color));
+  hipFuncSetCacheConfig(reinterpret_cast<const void*>(bilateralKernel), hipFuncCachePreferL1);
+  hipLaunchKernelGGL(bilateralKernel, dim3(grid), dim3(block), 0, 0, src, dst, 0.5f / (sigma_space * sigma_space), 0.5f / (sigma_color * sigma_color));
 
-  cudaSafeCall ( cudaGetLastError () );
+  cudaSafeCall ( hipGetLastError () );
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -197,9 +198,9 @@ pcl::device::pyrDown (const DepthMap& src, DepthMap& dst)
   dim3 block (32, 8);
   dim3 grid (divUp (dst.cols (), block.x), divUp (dst.rows (), block.y));
 
-  //pyrDownGaussKernel<<<grid, block>>>(src, dst, sigma_color);
-  pyrDownKernel<<<grid, block>>>(src, dst, sigma_color);
-  cudaSafeCall ( cudaGetLastError () );
+  //hipLaunchKernelGGL(pyrDownGaussKernel, dim3(grid), dim3(block), 0, 0, src, dst, sigma_color);
+  hipLaunchKernelGGL(pyrDownKernel, dim3(grid), dim3(block), 0, 0, src, dst, sigma_color);
+  cudaSafeCall ( hipGetLastError () );
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -209,7 +210,7 @@ pcl::device::truncateDepth(DepthMap& depth, float max_distance)
   dim3 block (32, 8);
   dim3 grid (divUp (depth.cols (), block.x), divUp (depth.rows (), block.y));
 
-  truncateDepthKernel<<<grid, block>>>(depth, static_cast<ushort>(max_distance * 1000.f));
+  hipLaunchKernelGGL(truncateDepthKernel, dim3(grid), dim3(block), 0, 0, depth, static_cast<ushort>(max_distance * 1000.f));
 
-  cudaSafeCall ( cudaGetLastError () );
+  cudaSafeCall ( hipGetLastError () );
 }

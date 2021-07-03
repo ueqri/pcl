@@ -236,7 +236,7 @@ class MultiRansac
     run (bool use_device, bool use_viewer)
     {
       this->use_viewer = use_viewer;
-      //cudaDeviceSetCacheConfig (cudaFuncCachePreferL1);
+      //hipDeviceSetCacheConfig (hipFuncCachePreferL1);
       pcl::OpenNIGrabber interface {};
 
       if (use_device)

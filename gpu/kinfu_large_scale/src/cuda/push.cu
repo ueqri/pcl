@@ -1,3 +1,4 @@
+#include "hip/hip_runtime.h"
 /*
  * Software License Agreement (BSD License)
  *
@@ -95,9 +96,9 @@ namespace pcl
         int numBlocks = divUp (number_of_points, BlockSize);
         dim3 threadsPerBlock (BlockX, BlockY);
         
-        loadTsdfValueKernel <<< numBlocks, threadsPerBlock >>> (first_point_pointer, cloud_gpu.ptr(), number_of_points, DIVISOR, *buffer);
-        cudaSafeCall ( cudaGetLastError () );
-        cudaSafeCall ( cudaDeviceSynchronize () );
+        hipLaunchKernelGGL(loadTsdfValueKernel, dim3(numBlocks), dim3(threadsPerBlock ), 0, 0, first_point_pointer, cloud_gpu.ptr(), number_of_points, DIVISOR, *buffer);
+        cudaSafeCall ( hipGetLastError () );
+        cudaSafeCall ( hipDeviceSynchronize () );
       }
     } /*namespace kinfuLS*/ 
   } /*namespace device*/

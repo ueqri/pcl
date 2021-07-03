@@ -1,3 +1,4 @@
+#include "hip/hip_runtime.h"
 /*
  * Software License Agreement (BSD License)
  *
@@ -126,8 +127,8 @@ pcl::device::createVMap (const Intr& intr, const DepthMap& depth, MapArr& vmap)
   float fx = intr.fx, cx = intr.cx;
   float fy = intr.fy, cy = intr.cy;
 
-  computeVmapKernel<<<grid, block>>>(depth, vmap, 1.f / fx, 1.f / fy, cx, cy);
-  cudaSafeCall (cudaGetLastError ());
+  hipLaunchKernelGGL(computeVmapKernel, dim3(grid), dim3(block), 0, 0, depth, vmap, 1.f / fx, 1.f / fy, cx, cy);
+  cudaSafeCall (hipGetLastError ());
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -144,8 +145,8 @@ pcl::device::createNMap (const MapArr& vmap, MapArr& nmap)
   grid.x = divUp (cols, block.x);
   grid.y = divUp (rows, block.y);
 
-  computeNmapKernel<<<grid, block>>>(rows, cols, vmap, nmap);
-  cudaSafeCall (cudaGetLastError ());
+  hipLaunchKernelGGL(computeNmapKernel, dim3(grid), dim3(block), 0, 0, rows, cols, vmap, nmap);
+  cudaSafeCall (hipGetLastError ());
 }
 
 namespace pcl
@@ -218,10 +219,10 @@ pcl::device::tranformMaps (const MapArr& vmap_src, const MapArr& nmap_src,
   grid.x = divUp (cols, block.x);
   grid.y = divUp (rows, block.y);
 
-  tranformMapsKernel<<<grid, block>>>(rows, cols, vmap_src, nmap_src, Rmat, tvec, vmap_dst, nmap_dst);
-  cudaSafeCall (cudaGetLastError ());
+  hipLaunchKernelGGL(tranformMapsKernel, dim3(grid), dim3(block), 0, 0, rows, cols, vmap_src, nmap_src, Rmat, tvec, vmap_dst, nmap_dst);
+  cudaSafeCall (hipGetLastError ());
 
-  cudaSafeCall (cudaDeviceSynchronize ());
+  cudaSafeCall (hipDeviceSynchronize ());
 }
 
 namespace pcl
@@ -297,8 +298,8 @@ namespace pcl
       dim3 block (32, 8);
       dim3 grid (divUp (out_cols, block.x), divUp (out_rows, block.y));
       resizeMapKernel<normalize><< < grid, block>>>(out_rows, out_cols, in_rows, input, output);
-      cudaSafeCall ( cudaGetLastError () );
-      cudaSafeCall (cudaDeviceSynchronize ());
+      cudaSafeCall ( hipGetLastError () );
+      cudaSafeCall (hipDeviceSynchronize ());
     }
   }
 }
@@ -362,8 +363,8 @@ pcl::device::convert (const MapArr& vmap, DeviceArray2D<T>& output)
   dim3 grid (divUp (cols, block.x), divUp (rows, block.y));
 
   convertMapKernel<T><< < grid, block>>>(rows, cols, vmap, output);
-  cudaSafeCall ( cudaGetLastError () );
-  cudaSafeCall (cudaDeviceSynchronize ());
+  cudaSafeCall ( hipGetLastError () );
+  cudaSafeCall (hipDeviceSynchronize ());
 }
 
 template void pcl::device::convert (const MapArr& vmap, DeviceArray2D<float4>& output);
@@ -404,7 +405,7 @@ pcl::device::mergePointNormal (const DeviceArray<float4>& cloud, const DeviceArr
   const int block = 256;
   int total = (int)output.size ();
 
-  mergePointNormalKernel<<<divUp (total, block), block>>>(cloud, normals, output);
-  cudaSafeCall ( cudaGetLastError () );
-  cudaSafeCall (cudaDeviceSynchronize ());
+  hipLaunchKernelGGL(mergePointNormalKernel, dim3(divUp (total), dim3(block)), block, 0, cloud, normals, output);
+  cudaSafeCall ( hipGetLastError () );
+  cudaSafeCall (hipDeviceSynchronize ());
 }

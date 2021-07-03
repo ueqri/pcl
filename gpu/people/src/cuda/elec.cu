@@ -1,3 +1,4 @@
+#include "hip/hip_runtime.h"
 #include "internal.h"
 
 #include <pcl/gpu/utils/texture_binder.hpp>
@@ -71,9 +72,9 @@ pcl::device::ConnectedComponents::initEdges(int rows, int cols, DeviceArray2D<un
   dim3 block(32, 8);
   dim3 grid(divUp(ecols, block.x), divUp(erows, block.y));
 
-  fillInvalidEdges<<<grid, block>>>(edges);
-  cudaSafeCall( cudaGetLastError() );
-  cudaSafeCall( cudaDeviceSynchronize() );
+  hipLaunchKernelGGL(fillInvalidEdges, dim3(grid), dim3(block), 0, 0, edges);
+  cudaSafeCall( hipGetLastError() );
+  cudaSafeCall( hipDeviceSynchronize() );
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -174,9 +175,9 @@ pcl::device::ConnectedComponents::computeEdges(const Labels& labels, const Depth
   dim3 block(32, 8);
   dim3 grid(divUp(labels.cols(), block.x), divUp(labels.rows(), block.y));
  
-  computeEdgesKernel<<<grid, block>>>(labels, depth, intr, num_parts, sq_radius, edges);
-  cudaSafeCall( cudaGetLastError() );
-  cudaSafeCall( cudaDeviceSynchronize() );
+  hipLaunchKernelGGL(computeEdgesKernel, dim3(grid), dim3(block), 0, 0, labels, depth, intr, num_parts, sq_radius, edges);
+  cudaSafeCall( hipGetLastError() );
+  cudaSafeCall( hipDeviceSynchronize() );
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -377,7 +378,7 @@ namespace pcl
         return label;
     }
 
-    texture<unsigned char, 2, cudaReadModeElementType> edgesTex;
+    texture<unsigned char, 2, hipReadModeElementType> edgesTex;
     
     struct TilesMerge
     {           
@@ -504,9 +505,9 @@ void pcl::device::ConnectedComponents::labelComponents(const DeviceArray2D<unsig
   dim3 block(CTA_SIZE_X, CTA_SIZE_Y);
   dim3 grid(divUp(edges.cols(), TILE_COLS), divUp(edges.rows(), TILE_ROWS));
   
-  smemTilesKernel<<<grid, block>>>(edges, comps);
-  cudaSafeCall( cudaGetLastError() );
-  cudaSafeCall( cudaDeviceSynchronize() );
+  hipLaunchKernelGGL(smemTilesKernel, dim3(grid), dim3(block), 0, 0, edges, comps);
+  cudaSafeCall( hipGetLastError() );
+  cudaSafeCall( hipDeviceSynchronize() );
 
   TextureBinder binder(edges, edgesTex);
 
@@ -525,9 +526,9 @@ void pcl::device::ConnectedComponents::labelComponents(const DeviceArray2D<unsig
   grid.x = edges.cols()/(tm.tileSizeX * tm.tilesNumX);
   grid.y = edges.rows()/(tm.tileSizeY * tm.tilesNumY);
   
-  mergeKernel<<<grid, 768>>>(tm);
-  cudaSafeCall( cudaGetLastError() );
-  cudaSafeCall( cudaDeviceSynchronize() );
+  hipLaunchKernelGGL(mergeKernel, dim3(grid), dim3(768), 0, 0, tm);
+  cudaSafeCall( hipGetLastError() );
+  cudaSafeCall( hipDeviceSynchronize() );
 
   //merge 5x5 -> 1x1 grid
   tm.tileSizeX = TILE_COLS * tm.tilesNumX;
@@ -538,13 +539,13 @@ void pcl::device::ConnectedComponents::labelComponents(const DeviceArray2D<unsig
   grid.x = edges.cols()/(tm.tileSizeX * tm.tilesNumX); 
   grid.y = edges.rows()/(tm.tileSizeY * tm.tilesNumY); 
 
-  mergeKernel<<<grid, 1024>>>(tm);
-  cudaSafeCall( cudaGetLastError() );
-  cudaSafeCall( cudaDeviceSynchronize() );
+  hipLaunchKernelGGL(mergeKernel, dim3(grid), dim3(1024), 0, 0, tm);
+  cudaSafeCall( hipGetLastError() );
+  cudaSafeCall( hipDeviceSynchronize() );
 
   grid.x = divUp(edges.cols(), block.x);
   grid.y = divUp(edges.rows(), block.y);
-  flattenTreesKernel<<<grid, block>>>(comps, edges);
-  cudaSafeCall( cudaGetLastError() );
-  cudaSafeCall( cudaDeviceSynchronize() );
+  hipLaunchKernelGGL(flattenTreesKernel, dim3(grid), dim3(block), 0, 0, comps, edges);
+  cudaSafeCall( hipGetLastError() );
+  cudaSafeCall( hipDeviceSynchronize() );
 }

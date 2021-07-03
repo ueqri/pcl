@@ -1,3 +1,4 @@
+#include "hip/hip_runtime.h"
 /*
  * Software License Agreement (BSD License)
  *
@@ -244,10 +245,10 @@ void pcl::device::computeNormals(const PointCloud& cloud, const NeighborIndices&
 
     int block = NormalsEstimator::CTA_SIZE;
     int grid = divUp((int)normals.size(), NormalsEstimator::WAPRS);
-    EstimateNormaslKernel<<<grid, block>>>(est);
+    hipLaunchKernelGGL(EstimateNormaslKernel, dim3(grid), dim3(block), 0, 0, est);
 
-    cudaSafeCall( cudaGetLastError() );        
-    cudaSafeCall(cudaDeviceSynchronize());
+    cudaSafeCall( hipGetLastError() );        
+    cudaSafeCall(hipDeviceSynchronize());
 }
 
 void pcl::device::flipNormalTowardsViewpoint(const PointCloud& cloud, const float3& vp, Normals& normals)
@@ -260,9 +261,9 @@ void pcl::device::flipNormalTowardsViewpoint(const PointCloud& cloud, const floa
     flip.vp = vp;
     flip.normals = normals;
 
-    flipNormalTowardsViewpointKernel<<<grid, block>>>(flip);
-    cudaSafeCall( cudaGetLastError() );        
-    cudaSafeCall(cudaDeviceSynchronize());
+    hipLaunchKernelGGL(flipNormalTowardsViewpointKernel, dim3(grid), dim3(block), 0, 0, flip);
+    cudaSafeCall( hipGetLastError() );        
+    cudaSafeCall(hipDeviceSynchronize());
 }
 
 void pcl::device::flipNormalTowardsViewpoint(const PointCloud& cloud, const Indices& indices, const float3& vp, Normals& normals)
@@ -275,7 +276,7 @@ void pcl::device::flipNormalTowardsViewpoint(const PointCloud& cloud, const Indi
     flip.vp = vp;
     flip.normals = normals;
 
-    flipNormalTowardsViewpointKernel<<<grid, block>>>(flip, indices.ptr());
-    cudaSafeCall( cudaGetLastError() );        
-    cudaSafeCall(cudaDeviceSynchronize());
+    hipLaunchKernelGGL(flipNormalTowardsViewpointKernel, dim3(grid), dim3(block), 0, 0, flip, indices.ptr());
+    cudaSafeCall( hipGetLastError() );        
+    cudaSafeCall(hipDeviceSynchronize());
 }
