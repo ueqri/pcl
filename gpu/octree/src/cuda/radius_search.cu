@@ -1,3 +1,4 @@
+#include "hip/hip_runtime.h"
 /*
 * Software License Agreement (BSD License)
 *
@@ -343,14 +344,14 @@ void pcl::device::OctreeImpl::radiusSearchEx(BatchType& batch, const Queries& qu
     batch.points = points_sorted;
     
     
-    cudaSafeCall( cudaFuncSetCacheConfig(KernelRS<BatchType>, cudaFuncCachePreferL1) );
+    cudaSafeCall( hipFuncSetCacheConfig(reinterpret_cast<const void*>(KernelRS<BatchType>), hipFuncCachePreferL1) );
 
     int block = KernelPolicy::CTA_SIZE;
     int grid = divUp((int)batch.queries.size, block);
 
-    KernelRS<<<grid, block>>>(batch);
-    cudaSafeCall( cudaGetLastError() );
-    cudaSafeCall( cudaDeviceSynchronize() );
+    hipLaunchKernelGGL(KernelRS, dim3(grid), dim3(block), 0, 0, batch);
+    cudaSafeCall( hipGetLastError() );
+    cudaSafeCall( hipDeviceSynchronize() );
 }
 
 

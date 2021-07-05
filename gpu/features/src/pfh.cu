@@ -1,3 +1,4 @@
+#include "hip/hip_runtime.h"
 /*
  * Software License Agreement (BSD License)
  *
@@ -272,9 +273,9 @@ void pcl::device::repackToAosForPfh(const PointCloud& cloud, const Normals& norm
     int block = Repack<false>::CTA_SIZE;        
     int grid = divUp(rpk.work_size, Repack<false>::WARPS);
     
-    device::repackKernel<<<grid, block>>>(rpk);
-    cudaSafeCall( cudaGetLastError() );
-    cudaSafeCall( cudaDeviceSynchronize() );
+    hipLaunchKernelGGL(device::repackKernel, dim3(grid), dim3(block), 0, 0, rpk);
+    cudaSafeCall( hipGetLastError() );
+    cudaSafeCall( hipDeviceSynchronize() );
 
     //printFuncAttrib(repackKernel);
 }
@@ -291,9 +292,9 @@ void pcl::device::computePfh125(const DeviceArray2D<float>& data_rpk, int max_el
     int block = Pfh125<false>::CTA_SIZE;        
     int grid = (int)fph.work_size;    
 
-    device::pfhKernel<<<grid, block>>>(fph);
-    cudaSafeCall( cudaGetLastError() );
-    cudaSafeCall( cudaDeviceSynchronize() );
+    hipLaunchKernelGGL(device::pfhKernel, dim3(grid), dim3(block), 0, 0, fph);
+    cudaSafeCall( hipGetLastError() );
+    cudaSafeCall( hipDeviceSynchronize() );
 
     //printFuncAttrib(pfhKernel);
 }
@@ -329,9 +330,9 @@ void pcl::device::repackToAosForPfhRgb(const PointCloud& cloud, const Normals& n
     int block = Repack<true>::CTA_SIZE;        
     int grid = divUp(rpk.work_size, Repack<true>::WARPS);
     
-    device::repackRgbKernel<<<grid, block>>>(rpk);
-    cudaSafeCall( cudaGetLastError() );
-    cudaSafeCall( cudaDeviceSynchronize() );
+    hipLaunchKernelGGL(device::repackRgbKernel, dim3(grid), dim3(block), 0, 0, rpk);
+    cudaSafeCall( hipGetLastError() );
+    cudaSafeCall( hipDeviceSynchronize() );
 
     //printFuncAttrib(repackRgbKernel);
 }
@@ -349,9 +350,9 @@ void pcl::device::computePfhRgb250(const DeviceArray2D<float>& data_rpk, int max
     int block = Pfh125<true>::CTA_SIZE;        
     int grid = (int)pfhrgb.work_size;    
 
-    device::pfhRgbKernel<<<grid, block>>>(pfhrgb);
-    cudaSafeCall( cudaGetLastError() );
-    cudaSafeCall( cudaDeviceSynchronize() );
+    hipLaunchKernelGGL(device::pfhRgbKernel, dim3(grid), dim3(block), 0, 0, pfhrgb);
+    cudaSafeCall( hipGetLastError() );
+    cudaSafeCall( hipDeviceSynchronize() );
 
     //printFuncAttrib(pfhRgbKernel);
 

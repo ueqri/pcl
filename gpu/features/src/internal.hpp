@@ -40,7 +40,7 @@
 #include <pcl/gpu/containers/device_array.h>
 #include <pcl/gpu/octree/device_format.hpp>
 
-#include <cuda_runtime.h>
+#include <hip/hip_runtime.h>
 
 #undef PI
 #ifndef PI

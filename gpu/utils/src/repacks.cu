@@ -1,3 +1,4 @@
+#include "hip/hip_runtime.h"
 #include "internal.hpp"
 #include <algorithm>
 #include "pcl/gpu/utils/safe_call.hpp"
@@ -76,9 +77,9 @@ namespace pcl
             dim3 block(256);
             dim3 grid(divUp(size, block.x));
 
-            deviceCopyFields4B<in_size, out_size><<<grid, block>>>(i, size, input, output);
-            cudaSafeCall ( cudaGetLastError () );
-            cudaSafeCall (cudaDeviceSynchronize ());
+            hipLaunchKernelGGL(HIP_KERNEL_NAME(deviceCopyFields4B<in_size, out_size>), dim3(grid), dim3(block), 0, 0, i, size, input, output);
+            cudaSafeCall ( hipGetLastError () );
+            cudaSafeCall (hipDeviceSynchronize ());
         }
 
         using copy_fields_t = void (*)(int info[4], int size, const void* input, void* output);

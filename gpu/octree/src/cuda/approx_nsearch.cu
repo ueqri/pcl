@@ -1,3 +1,4 @@
+#include "hip/hip_runtime.h"
 /*
  * Software License Agreement (BSD License)
  *
@@ -240,10 +241,10 @@ pcl::device::OctreeImpl::approxNearestSearch(const Queries& queries,
   int block = pcl::device::appnearest_search::KernelPolicy::CTA_SIZE;
   int grid = (batch.queries_num + block - 1) / block;
 
-  cudaSafeCall(cudaFuncSetCacheConfig(pcl::device::appnearest_search::KernelAN,
-                                      cudaFuncCachePreferL1));
+  cudaSafeCall(hipFuncSetCacheConfig(reinterpret_cast<const void*>(pcl::device::appnearest_search::KernelAN),
+                                      hipFuncCachePreferL1));
 
-  pcl::device::appnearest_search::KernelAN<<<grid, block>>>(batch);
-  cudaSafeCall(cudaGetLastError());
-  cudaSafeCall(cudaDeviceSynchronize());
+  hipLaunchKernelGGL(pcl::device::appnearest_search::KernelAN, dim3(grid), dim3(block), 0, 0, batch);
+  cudaSafeCall(hipGetLastError());
+  cudaSafeCall(hipDeviceSynchronize());
 }

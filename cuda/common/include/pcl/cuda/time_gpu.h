@@ -37,7 +37,7 @@
 
 #pragma once
 
-#include <cuda.h>
+#include <hip/hip_runtime.h>
 #include <pcl/cuda/cutil_inline.h>
 
 namespace pcl
@@ -71,10 +71,10 @@ namespace pcl
         start ()
         {
           CUT_CHECK_ERROR ("dude");
-          cutilSafeCall (cudaEventCreate (&start_));
-          cutilSafeCall (cudaEventCreate (&end_));
+          cutilSafeCall (hipEventCreate (&start_));
+          cutilSafeCall (hipEventCreate (&end_));
   
-          cutilSafeCall (cudaEventRecord (start_, 0));
+          cutilSafeCall (hipEventRecord (start_, 0));
         }
   
         /** \brief Stop the timer. */
@@ -83,13 +83,13 @@ namespace pcl
         {
           CUT_CHECK_ERROR ("dude");
           // Measure time needed to copy data
-          cutilSafeCall (cudaDeviceSynchronize ());
-          cutilSafeCall (cudaEventRecord (end_, 0));
-          cutilSafeCall (cudaEventSynchronize (end_));
-          cutilSafeCall (cudaEventElapsedTime (&elapsed_time_, start_, end_));
+          cutilSafeCall (hipDeviceSynchronize ());
+          cutilSafeCall (hipEventRecord (end_, 0));
+          cutilSafeCall (hipEventSynchronize (end_));
+          cutilSafeCall (hipEventElapsedTime (&elapsed_time_, start_, end_));
   
-          cutilSafeCall (cudaEventDestroy (end_));
-          cutilSafeCall (cudaEventDestroy (start_));
+          cutilSafeCall (hipEventDestroy (end_));
+          cutilSafeCall (hipEventDestroy (start_));
         }
   
         /** \brief Stop and print the timer. */
@@ -101,8 +101,8 @@ namespace pcl
   
   
       private:
-        cudaEvent_t start_;
-        cudaEvent_t end_;
+        hipEvent_t start_;
+        hipEvent_t end_;
   
         float elapsed_time_;
   

@@ -1,3 +1,4 @@
+#include "hip/hip_runtime.h"
 /*
  * Software License Agreement (BSD License)
  *
@@ -210,19 +211,19 @@ namespace pcl
         te.coresp = coresp;
         te.gbuf = gbuf;
 
-        TransformEstimatorKernel1<<<grid, block>>>(te);
-        cudaSafeCall ( cudaGetLastError () );
-        //cudaSafeCall(cudaDeviceSynchronize());
+        hipLaunchKernelGGL(TransformEstimatorKernel1, dim3(grid), dim3(block), 0, 0, te);
+        cudaSafeCall ( hipGetLastError () );
+        //cudaSafeCall(hipDeviceSynchronize());
 
         TRed tr;
         tr.gbuf = gbuf;
         tr.length = grid.x * grid.y;
         tr.output = mbuf;
 
-        TransformEstimatorKernel2<<<TRed::TOTAL, TRed::CTA_SIZE>>>(tr);
+        hipLaunchKernelGGL(TransformEstimatorKernel2, dim3(TRed::TOTAL), dim3(TRed::CTA_SIZE), 0, 0, tr);
 
-        cudaSafeCall ( cudaGetLastError () );
-        cudaSafeCall (cudaDeviceSynchronize ());
+        cudaSafeCall ( hipGetLastError () );
+        cudaSafeCall (hipDeviceSynchronize ());
 
         float host_data[TRed::TOTAL];
         mbuf.download (host_data);

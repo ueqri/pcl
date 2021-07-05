@@ -1,3 +1,4 @@
+#include "hip/hip_runtime.h"
 /*
 * Software License Agreement (BSD License)
 *
@@ -246,9 +247,9 @@ void pcl::device::computePointPrincipalCurvatures(const Normals& normals, const 
 
     int block = PrincipalCurvaturesImpl::CTA_SIZE;
     int grid = divUp(impl.work_size, PrincipalCurvaturesImpl::WARPS);
-    principalCurvaturesKernel<<<grid, block>>>(impl);
-    cudaSafeCall( cudaGetLastError() );
-    cudaSafeCall( cudaDeviceSynchronize() );
+    hipLaunchKernelGGL(principalCurvaturesKernel, dim3(grid), dim3(block), 0, 0, impl);
+    cudaSafeCall( hipGetLastError() );
+    cudaSafeCall( hipDeviceSynchronize() );
 
     //printFuncAttrib(principalCurvaturesKernel);
     //printFuncAttrib(principalCurvaturesStep2<256>);

@@ -1,3 +1,4 @@
+#include "hip/hip_runtime.h"
 /*
  * Software License Agreement (BSD License)
  *
@@ -350,9 +351,9 @@ namespace pcl
         dim3 block (RayCaster::CTA_SIZE_X, RayCaster::CTA_SIZE_Y);
         dim3 grid (divUp (rc.cols, block.x), divUp (rc.rows, block.y));
 
-        rayCastKernel<<<grid, block>>>(rc, *buffer);
-        cudaSafeCall (cudaGetLastError ());
-        cudaSafeCall(cudaDeviceSynchronize());
+        hipLaunchKernelGGL(rayCastKernel, dim3(grid), dim3(block), 0, 0, rc, *buffer);
+        cudaSafeCall (hipGetLastError ());
+        cudaSafeCall(hipDeviceSynchronize());
       }
     }
   }

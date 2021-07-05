@@ -22,12 +22,12 @@
 
 #pragma once
 
-#include "cuda_runtime.h"
+#include "hip/hip_runtime.h"
 
 using uint = unsigned int;
 using ushort = unsigned short;
 
-#ifndef __CUDACC__
+#ifndef __HIPCC__
 #include <math.h>
 
 ////////////////////////////////////////////////////////////////////////////////

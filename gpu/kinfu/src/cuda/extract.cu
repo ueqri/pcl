@@ -1,3 +1,4 @@
+#include "hip/hip_runtime.h"
 /*
  * Software License Agreement (BSD License)
  *
@@ -283,15 +284,15 @@ pcl::device::extractCloud (const PtrStep<short2>& volume, const float3& volume_s
   dim3 block (CTA_SIZE_X, CTA_SIZE_Y);
   dim3 grid (divUp (VOLUME_X, block.x), divUp (VOLUME_Y, block.y));
 
-  //cudaFuncSetCacheConfig(extractKernel, cudaFuncCachePreferL1);
+  //hipFuncSetCacheConfig(reinterpret_cast<const void*>(extractKernel), hipFuncCachePreferL1);
   //printFuncAttrib(extractKernel);
 
-  extractKernel<<<grid, block>>>(fs);
-  cudaSafeCall ( cudaGetLastError () );
-  cudaSafeCall (cudaDeviceSynchronize ());
+  hipLaunchKernelGGL(extractKernel, dim3(grid), dim3(block), 0, 0, fs);
+  cudaSafeCall ( hipGetLastError () );
+  cudaSafeCall (hipDeviceSynchronize ());
 
   int size;
-  cudaSafeCall ( cudaMemcpyFromSymbol (&size, output_count, sizeof(size)) );
+  cudaSafeCall ( hipMemcpyFromSymbol(&size, HIP_SYMBOL(output_count), sizeof(size)) );
   return (std::size_t)size;
 }
 
@@ -444,9 +445,9 @@ pcl::device::extractNormals (const PtrStep<short2>& volume, const float3& volume
   dim3 block (256);
   dim3 grid (divUp (points.size, block.x));
 
-  extractNormalsKernel<<<grid, block>>>(en);
-  cudaSafeCall ( cudaGetLastError () );
-  cudaSafeCall (cudaDeviceSynchronize ());
+  hipLaunchKernelGGL(extractNormalsKernel, dim3(grid), dim3(block), 0, 0, en);
+  cudaSafeCall ( hipGetLastError () );
+  cudaSafeCall (hipDeviceSynchronize ());
 }
 
 using namespace pcl::device;

@@ -1,3 +1,4 @@
+#include "hip/hip_runtime.h"
 /*
  * Software License Agreement (BSD License)
  *
@@ -258,10 +259,10 @@ namespace pcl
       dim3 block(32, 8);
       dim3 grid(divUp(depth.cols(), block.x), divUp(depth.rows(), block.y) );
 
-      KernelCUDA_SelectLabel<<< grid, block >>>( labels, probabilities );
+      hipLaunchKernelGGL(KernelCUDA_SelectLabel, dim3(grid), dim3(block ), 0, 0,  labels, probabilities );
 
-      cudaSafeCall( cudaGetLastError() );
-      cudaSafeCall( cudaDeviceSynchronize() );
+      cudaSafeCall( hipGetLastError() );
+      cudaSafeCall( hipDeviceSynchronize() );
     }
 
     /** \brief This will combine two probabilities according their weight **/
@@ -277,10 +278,10 @@ namespace pcl
       dim3 grid(divUp(depth.cols(), block.x), divUp(depth.rows(), block.y) );
 
       // CUDA kernel call
-      KernelCUDA_CombineProb<<< grid, block >>>( probIn1, weight1, probIn2, weight2, probOut );
+      hipLaunchKernelGGL(KernelCUDA_CombineProb, dim3(grid), dim3(block ), 0, 0,  probIn1, weight1, probIn2, weight2, probOut );
 
-      cudaSafeCall( cudaGetLastError() );
-      cudaSafeCall( cudaDeviceSynchronize() );
+      cudaSafeCall( hipGetLastError() );
+      cudaSafeCall( hipDeviceSynchronize() );
     }
 
     /** \brief This will combine two probabilities according their weight **/
@@ -294,10 +295,10 @@ namespace pcl
       dim3 grid(divUp(depth.cols(), block.x), divUp(depth.rows(), block.y) );
 
       // CUDA kernel call
-      KernelCUDA_WeightedSumProb<<< grid, block >>>( probIn, weight, probOut );
+      hipLaunchKernelGGL(KernelCUDA_WeightedSumProb, dim3(grid), dim3(block ), 0, 0,  probIn, weight, probOut );
 
-      cudaSafeCall( cudaGetLastError() );
-      cudaSafeCall( cudaDeviceSynchronize() );
+      cudaSafeCall( hipGetLastError() );
+      cudaSafeCall( hipDeviceSynchronize() );
     }
 
     /** \brief This will blur the input labelprobability with the given kernel **/
@@ -331,15 +332,15 @@ namespace pcl
       //PCL_INFO("[pcl::device::ProbabilityProc::CUDA_GaussianBlur] : (I) : called c: %d r: %d\n", probIn.cols(), probIn.rows());
 
       // CUDA kernel call Vertical
-      KernelCUDA_GaussianBlurVer<<< grid, block >>>( probIn, kernel, kernel.size(), probTemp );
-      //KernelCUDA_GaussianBlurVer<<< grid, block >>>( probIn, kernel, kernel.size(), probOut );
-      cudaSafeCall( cudaGetLastError() );
-      cudaSafeCall( cudaDeviceSynchronize() );
+      hipLaunchKernelGGL(KernelCUDA_GaussianBlurVer, dim3(grid), dim3(block ), 0, 0,  probIn, kernel, kernel.size(), probTemp );
+      //hipLaunchKernelGGL(KernelCUDA_GaussianBlurVer, dim3(grid), dim3(block ), 0, 0,  probIn, kernel, kernel.size(), probOut );
+      cudaSafeCall( hipGetLastError() );
+      cudaSafeCall( hipDeviceSynchronize() );
 
       // CUDA kernel call Horizontal
-      KernelCUDA_GaussianBlurHor<<< grid, block >>>( probTemp, kernel, kernel.size(), probOut );
-      cudaSafeCall( cudaGetLastError() );
-      cudaSafeCall( cudaDeviceSynchronize() );
+      hipLaunchKernelGGL(KernelCUDA_GaussianBlurHor, dim3(grid), dim3(block ), 0, 0,  probTemp, kernel, kernel.size(), probOut );
+      cudaSafeCall( hipGetLastError() );
+      cudaSafeCall( hipDeviceSynchronize() );
       return 1;
     }
   }

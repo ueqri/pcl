@@ -38,7 +38,7 @@
 #include "pcl/cuda/sample_consensus/sac_model_plane.h"
 #include "pcl/cuda/cutil_math.h"
 
-#include <vector_types.h>
+#include <hip/hip_vector_types.h>
 #include <thrust/copy.h>
 #include <thrust/count.h>
 

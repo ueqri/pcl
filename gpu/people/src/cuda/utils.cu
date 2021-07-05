@@ -1,3 +1,4 @@
+#include "hip/hip_runtime.h"
 #include <limits>
 
 #include "internal.h"
@@ -11,7 +12,7 @@ namespace pcl
 {
   namespace device
   {
-    texture<uchar4, cudaTextureType1D, cudaReadModeElementType> cmapTex;
+    texture<uchar4, hipTextureType1D, hipReadModeElementType> cmapTex;
 
     __global__ void colorKernel(const PtrStepSz<unsigned char> labels, PtrStep<uchar4> output)
     {
@@ -46,29 +47,29 @@ namespace pcl
 
 void pcl::device::colorLMap(const Labels& labels, const DeviceArray<uchar4>& map, Image& rgba)
 {
-  cmapTex.addressMode[0] = cudaAddressModeClamp;
+  cmapTex.addressMode[0] = hipAddressModeClamp;
   TextureBinder binder(map, cmapTex);
   
   dim3 block(32, 8);
   dim3 grid( divUp(labels.cols(), block.x), divUp(labels.rows(), block.y) );
 
-  colorKernel<<< grid, block >>>( labels, rgba );
+  hipLaunchKernelGGL(colorKernel, dim3(grid), dim3(block ), 0, 0,  labels, rgba );
 
-  cudaSafeCall( cudaGetLastError() );
-  cudaSafeCall( cudaDeviceSynchronize() );  
+  cudaSafeCall( hipGetLastError() );
+  cudaSafeCall( hipDeviceSynchronize() );  
 }
 
 void pcl::device::mixedColorMap(const Labels& labels, const DeviceArray<uchar4>& map, const Image& rgba, Image& output)
 {
-  cmapTex.addressMode[0] = cudaAddressModeClamp;
+  cmapTex.addressMode[0] = hipAddressModeClamp;
   TextureBinder binder(map, cmapTex);
 
   dim3 block(32, 8);
   dim3 grid(divUp(labels.cols(), block.x), divUp(labels.rows(), block.y));
 
-  mixedColorKernel<<<grid, block>>>(labels, rgba, output);
-  cudaSafeCall( cudaGetLastError() );
-  cudaSafeCall( cudaDeviceSynchronize() );
+  hipLaunchKernelGGL(mixedColorKernel, dim3(grid), dim3(block), 0, 0, labels, rgba, output);
+  cudaSafeCall( hipGetLastError() );
+  cudaSafeCall( hipDeviceSynchronize() );
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -76,7 +77,7 @@ void pcl::device::mixedColorMap(const Labels& labels, const DeviceArray<uchar4>&
 
 #if defined(__GNUC__)
   #define nppSafeCall(expr)  pcl::gpu::___nppSafeCall(expr, __FILE__, __LINE__, __func__)    
-#else /* defined(__CUDACC__) || defined(__MSVC__) */
+#else /* defined(__HIPCC__) || defined(__MSVC__) */
   #define nppSafeCall(expr)  pcl::gpu::___nppSafeCall(expr, __FILE__, __LINE__)    
 #endif
 
@@ -168,10 +169,10 @@ void pcl::device::prepareForeGroundDepth(const Depth& depth1, Mask& inverse_mask
   dim3 block(32, 8);
   dim3 grid( divUp(cols, block.x), divUp(rows, block.y) );
 
-  fgDepthKernel<<< grid, block >>>( depth1, inverse_mask, depth2 );
+  hipLaunchKernelGGL(fgDepthKernel, dim3(grid), dim3(block ), 0, 0,  depth1, inverse_mask, depth2 );
 
-  cudaSafeCall( cudaGetLastError() );
-  cudaSafeCall( cudaDeviceSynchronize() );
+  cudaSafeCall( hipGetLastError() );
+  cudaSafeCall( hipDeviceSynchronize() );
 }
 
 
@@ -250,10 +251,10 @@ void pcl::device::computeHueWithNans(const Image& rgba, const Depth& depth, HueI
   grid.x = divUp(rgba.cols(), block.x);
   grid.y = divUp(rgba.rows(), block.y);
 
-  computeHueKernel<<<grid, block>>>(rgba, depth, hue);
+  hipLaunchKernelGGL(computeHueKernel, dim3(grid), dim3(block), 0, 0, rgba, depth, hue);
 
-  cudaSafeCall( cudaGetLastError() );
-  cudaSafeCall( cudaDeviceSynchronize() );
+  cudaSafeCall( hipGetLastError() );
+  cudaSafeCall( hipDeviceSynchronize() );
 }
 
 namespace pcl
@@ -292,8 +293,8 @@ void pcl::device::computeCloud(const Depth& depth, const Intr& intr, Cloud& clou
   grid.x = divUp(depth.cols(), block.x);
   grid.y = divUp(depth.rows(), block.y);
 
-  reprojectDepthKenrel<<<grid, block>>>(depth, intr, cloud);
+  hipLaunchKernelGGL(reprojectDepthKenrel, dim3(grid), dim3(block), 0, 0, depth, intr, cloud);
 
-  cudaSafeCall( cudaGetLastError() );
-  cudaSafeCall( cudaDeviceSynchronize() );
+  cudaSafeCall( hipGetLastError() );
+  cudaSafeCall( hipDeviceSynchronize() );
 }

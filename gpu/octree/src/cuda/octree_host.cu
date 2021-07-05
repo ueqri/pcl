@@ -1,3 +1,4 @@
+#include "hip/hip_runtime.h"
 /*
 * Software License Agreement (BSD License)
 *
@@ -61,8 +62,8 @@ namespace pcl
 
 void  pcl::device::OctreeImpl::get_gpu_arch_compiled_for(int& bin, int& ptx)
 {
-    cudaFuncAttributes attrs;
-    cudaSafeCall( cudaFuncGetAttributes(&attrs, get_cc_kernel) );  
+    hipFuncAttributes attrs;
+    cudaSafeCall( hipFuncGetAttributes(&attrs, reinterpret_cast<const void*>(get_cc_kernel)));  
     bin = attrs.binaryVersion;
     ptx = attrs.ptxVersion;
 }

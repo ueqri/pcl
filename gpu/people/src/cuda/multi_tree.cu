@@ -1,3 +1,4 @@
+#include "hip/hip_runtime.h"
 /*
  * Software License Agreement (BSD License)
  *
@@ -68,8 +69,8 @@ namespace pcl
 {
   namespace device
   {
-    texture<unsigned short, 2, cudaReadModeElementType> depthTex;
-    texture<char4, 2, cudaReadModeElementType> multilabelTex;
+    texture<unsigned short, 2, hipReadModeElementType> depthTex;
+    texture<char4, 2, hipReadModeElementType> multilabelTex;
 
     __constant__ int constFGThresh;
 
@@ -154,15 +155,15 @@ namespace pcl
     {
       labels.create( depth.rows(), depth.cols() );
 
-      depthTex.addressMode[0] = cudaAddressModeClamp;
+      depthTex.addressMode[0] = hipAddressModeClamp;
       TextureBinder binder(depth, depthTex);      
 
       dim3 block(32, 8);      
       dim3 grid(divUp(depth.cols(), block.x), divUp(depth.rows(), block.y) );      
 
-      KernelCUDA_runTree<<< grid, block >>>( focal, treeHeight, numNodes, nodes, leaves, labels);
-      cudaSafeCall( cudaGetLastError() );
-      cudaSafeCall( cudaDeviceSynchronize() );      
+      hipLaunchKernelGGL(KernelCUDA_runTree, dim3(grid), dim3(block ), 0, 0,  focal, treeHeight, numNodes, nodes, leaves, labels);
+      cudaSafeCall( hipGetLastError() );
+      cudaSafeCall( hipDeviceSynchronize() );      
     }
 
     void CUDA_runMultiTreePass ( int   FGThresh,
@@ -176,7 +177,7 @@ namespace pcl
                                  MultiLabels& multilabel )
     {
       //std::cout << "(I) : CUDA_runMultiTreePass() called" << std::endl;
-      depthTex.addressMode[0] = cudaAddressModeClamp;
+      depthTex.addressMode[0] = hipAddressModeClamp;
       TextureBinder binder(depth, depthTex);                  
 
       dim3 block(32, 8);
@@ -184,19 +185,19 @@ namespace pcl
 
       if(FGThresh == std::numeric_limits<int>::max())
       {
-        KernelCUDA_MultiTreePass<false><<< grid, block >>>( treeId, focal, treeHeight, 
+        hipLaunchKernelGGL(HIP_KERNEL_NAME(KernelCUDA_MultiTreePass<false>), dim3(grid), dim3(block ), 0, 0,  treeId, focal, treeHeight, 
             numNodes, nodes_device, leaves_device, depth, multilabel);
       }
       else
       {
-        cudaSafeCall( cudaMemcpyToSymbol(constFGThresh, &FGThresh,  sizeof(FGThresh)) );
+        cudaSafeCall( hipMemcpyToSymbol(HIP_SYMBOL(constFGThresh), &FGThresh,  sizeof(FGThresh)) );
 
-        KernelCUDA_MultiTreePass<true><<< grid, block >>>( treeId, focal, treeHeight, 
+        hipLaunchKernelGGL(HIP_KERNEL_NAME(KernelCUDA_MultiTreePass<true>), dim3(grid), dim3(block ), 0, 0,  treeId, focal, treeHeight, 
             numNodes, nodes_device, leaves_device, depth, multilabel);
       }
 
-      cudaSafeCall( cudaGetLastError() );
-      cudaSafeCall( cudaDeviceSynchronize() );      
+      cudaSafeCall( hipGetLastError() );
+      cudaSafeCall( hipDeviceSynchronize() );      
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////
@@ -309,19 +310,19 @@ namespace pcl
       //std::cout << "(I) : CUDA_runMultiTreeMerge() called" << std::endl;
       labels.create(depth.rows(), depth.cols());
 
-      depthTex.addressMode[0] = cudaAddressModeClamp;
+      depthTex.addressMode[0] = hipAddressModeClamp;
       TextureBinder binder(depth, depthTex);                  
 
-      multilabelTex.addressMode[0] = cudaAddressModeClamp;
+      multilabelTex.addressMode[0] = hipAddressModeClamp;
       TextureBinder mlabels_binder(multilabel, multilabelTex);      
 
       dim3 block(32, 8);      
       dim3 grid(divUp(depth.cols(), block.x), divUp(depth.rows(), block.y) );      
 
-      KernelCUDA_MultiTreeMerge<<< grid, block >>>( numTrees, labels );
+      hipLaunchKernelGGL(KernelCUDA_MultiTreeMerge, dim3(grid), dim3(block ), 0, 0,  numTrees, labels );
 
-      cudaSafeCall( cudaGetLastError() );
-      cudaSafeCall( cudaDeviceSynchronize() );            
+      cudaSafeCall( hipGetLastError() );
+      cudaSafeCall( hipDeviceSynchronize() );            
     }
 
     /** \brief This will merge the votes from the different trees into one final vote, including probabilistic's */
@@ -334,19 +335,19 @@ namespace pcl
       std::cout << "(I) : CUDA_runMultiTreeProb() called" << std::endl;
 
       //labels.create(depth.rows(), depth.cols());
-      //depthTex.addressMode[0] = cudaAddressModeClamp;
+      //depthTex.addressMode[0] = hipAddressModeClamp;
       //TextureBinder binder(depth, depthTex);
 
-      multilabelTex.addressMode[0] = cudaAddressModeClamp;
+      multilabelTex.addressMode[0] = hipAddressModeClamp;
       TextureBinder mlabels_binder(multilabel, multilabelTex);
 
       dim3 block(32, 8);      
       dim3 grid(divUp(depth.cols(), block.x), divUp(depth.rows(), block.y) );      
 
-      KernelCUDA_MultiTreeCreateProb<<< grid, block >>>( numTrees, probabilities);
+      hipLaunchKernelGGL(KernelCUDA_MultiTreeCreateProb, dim3(grid), dim3(block ), 0, 0,  numTrees, probabilities);
 
-      cudaSafeCall( cudaGetLastError() );
-      cudaSafeCall( cudaDeviceSynchronize() );            
+      cudaSafeCall( hipGetLastError() );
+      cudaSafeCall( hipDeviceSynchronize() );            
     }
   }
 }

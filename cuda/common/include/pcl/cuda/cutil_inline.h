@@ -11,9 +11,9 @@
  
 #pragma once
 
-#include <cuda.h>
+#include <hip/hip_runtime.h>
 #include <pcl/cuda/cutil.h>
-#include <cuda_runtime_api.h>
+#include <hip/hip_runtime_api.h>
 
 #include <pcl/cuda/cutil_inline_bankchecker.h>
 #include <pcl/cuda/cutil_inline_runtime.h>

@@ -408,7 +408,7 @@ namespace pcl
       /** \brief synchronizes CUDA execution */
       inline 
       void 
-      sync () { cudaSafeCall (cudaDeviceSynchronize ()); }
+      sync () { cudaSafeCall (hipDeviceSynchronize ()); }
 
 
       template<class D, class Matx> D&

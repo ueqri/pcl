@@ -47,8 +47,8 @@ namespace pcl
         void printFuncAttrib(Func& func)
         {
 
-            cudaFuncAttributes attrs;
-            cudaFuncGetAttributes(&attrs, func);  
+            hipFuncAttributes attrs;
+            hipFuncGetAttributes(&attrs, reinterpret_cast<const void*>(func));  
 
             printf("=== Function stats ===\n");
             printf("Name: \n");

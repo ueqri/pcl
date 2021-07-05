@@ -43,7 +43,7 @@
 
 #include <limits>
 
-#include <cuda.h>
+#include <hip/hip_runtime.h>
 
 namespace pcl
 {

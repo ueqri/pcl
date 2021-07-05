@@ -72,7 +72,7 @@ namespace pcl
         __inline__ __host__ __device__ bool 
         operator ()(PointXYZRGB pt) 
         { 
-#ifdef __CUDACC__
+#ifdef __HIPCC__
             return (isnan (pt.x) | isnan (pt.y) | isnan (pt.z)) == 1; 
 #else
             return (std::isnan (pt.x) | std::isnan (pt.y) | std::isnan (pt.z)) == 1;

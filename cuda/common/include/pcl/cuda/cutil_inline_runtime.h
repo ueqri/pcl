@@ -25,7 +25,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include <cufft.h>
+#include <hipfft.h>
 
 // We define these calls here, so the user doesn't need to include __FILE__ and __LINE__
 // The advantage is the developers gets to use the inline function so they can debug
@@ -40,14 +40,14 @@
 #define cutilCondition(val)          __cutilCondition    (val, __FILE__, __LINE__)
 #define cutilExit(argc, argv)        __cutilExit         (argc, argv)
 
-inline cudaError cutilDeviceSynchronize()
+inline hipError_t cutilDeviceSynchronize()
 {
-	return cudaDeviceSynchronize();
+	return hipDeviceSynchronize();
 }
 
-inline cudaError cutilDeviceReset()
+inline hipError_t cutilDeviceReset()
 {
-	return cudaDeviceReset();
+	return hipDeviceReset();
 }
 
 inline void __cutilCondition(int val, char *file, int line) 
@@ -111,11 +111,11 @@ inline int cutGetMaxGflopsDeviceId()
     int device_count     = 0;
     int best_SM_arch     = 0;
 
-	cudaGetDeviceCount( &device_count );
+	hipGetDeviceCount( &device_count );
 	// Find the best major SM Architecture GPU device
 	while ( current_device < device_count ) {
-              cudaDeviceProp deviceProp;
-		cudaGetDeviceProperties( &deviceProp, current_device );
+              hipDeviceProp_t deviceProp;
+		hipGetDeviceProperties( &deviceProp, current_device );
 		if (deviceProp.major > 0 && deviceProp.major < 9999) {
 			best_SM_arch = MAX(best_SM_arch, deviceProp.major);
 		}
@@ -125,8 +125,8 @@ inline int cutGetMaxGflopsDeviceId()
     // Find the best CUDA capable GPU device
 	current_device = 0;
 	while( current_device < device_count ) {
-              cudaDeviceProp deviceProp;
-		cudaGetDeviceProperties( &deviceProp, current_device );
+              hipDeviceProp_t deviceProp;
+		hipGetDeviceProperties( &deviceProp, current_device );
               int sm_per_multiproc = (deviceProp.major == 9999 && deviceProp.minor == 9999) ? 1 : _ConvertSMVer2Cores(deviceProp.major, deviceProp.minor);
 
 		int compute_perf  = deviceProp.multiProcessorCount * sm_per_multiproc * deviceProp.clockRate;
@@ -158,11 +158,11 @@ inline int cutGetMaxGflopsGraphicsDeviceId()
     int best_SM_arch     = 0;
     int bTCC = 0;
 
-	cudaGetDeviceCount( &device_count );
+	hipGetDeviceCount( &device_count );
 	// Find the best major SM Architecture GPU device that is graphics capable
 	while ( current_device < device_count ) {
-              	cudaDeviceProp deviceProp;
-		cudaGetDeviceProperties( &deviceProp, current_device );
+              	hipDeviceProp_t deviceProp;
+		hipGetDeviceProperties( &deviceProp, current_device );
 
 		if (deviceProp.tccDriver) bTCC = 1;
 
@@ -177,8 +177,8 @@ inline int cutGetMaxGflopsGraphicsDeviceId()
     // Find the best CUDA capable GPU device
 	current_device = 0;
 	while( current_device < device_count ) {
-              	cudaDeviceProp deviceProp;
-		cudaGetDeviceProperties( &deviceProp, current_device );
+              	hipDeviceProp_t deviceProp;
+		hipGetDeviceProperties( &deviceProp, current_device );
               	int sm_per_multiproc = (deviceProp.major == 9999 && deviceProp.minor == 9999) ? 1 : _ConvertSMVer2Cores(deviceProp.major, deviceProp.minor);
 
 		if (deviceProp.tccDriver) bTCC = 1;
@@ -242,37 +242,37 @@ inline int cutGetMaxGflopsGraphicsDeviceId()
 // NOTE: "%s(%i) : " allows Visual Studio to directly jump to the file at the right line
 // when the user double clicks on the error line in the Output pane. Like any compile error.
 
-inline void __cudaSafeCallNoSync( cudaError err, const char *file, const int line )
+inline void __cudaSafeCallNoSync( hipError_t err, const char *file, const int line )
 {
-    if( cudaSuccess != err) {
+    if( hipSuccess != err) {
         FPRINTF((stderr, "%s(%i) : cudaSafeCallNoSync() Runtime API error : %s.\n",
-                file, line, cudaGetErrorString( err) ));
+                file, line, hipGetErrorString( err) ));
         exit(-1);
     }
 }
 
-inline void __cudaSafeCall( cudaError err, const char *file, const int line )
+inline void __cudaSafeCall( hipError_t err, const char *file, const int line )
 {
-    if( cudaSuccess != err) {
+    if( hipSuccess != err) {
 	FPRINTF((stderr, "%s(%i) : cudaSafeCall() Runtime API error : %s.\n",
-                file, line, cudaGetErrorString( err) ));
+                file, line, hipGetErrorString( err) ));
         exit(-1);
     }
 }
 
 inline void __cudaSafeThreadSync( const char *file, const int line )
 {
-    cudaError err = cutilDeviceSynchronize();
-    if ( cudaSuccess != err) {
-        FPRINTF((stderr, "%s(%i) : cudaDeviceSynchronize() Runtime API error : %s.\n",
-                file, line, cudaGetErrorString( err) ));
+    hipError_t err = cutilDeviceSynchronize();
+    if ( hipSuccess != err) {
+        FPRINTF((stderr, "%s(%i) : hipDeviceSynchronize() Runtime API error : %s.\n",
+                file, line, hipGetErrorString( err) ));
         exit(-1);
     }
 }
 
-inline void __cufftSafeCall( cufftResult err, const char *file, const int line )
+inline void __cufftSafeCall( hipfftResult err, const char *file, const int line )
 {
-    if( CUFFT_SUCCESS != err) {
+    if( HIPFFT_SUCCESS != err) {
         FPRINTF((stderr, "%s(%i) : cufftSafeCall() CUFFT error.\n",
                 file, line));
         exit(-1);
@@ -290,27 +290,27 @@ inline void __cutilCheckError( CUTBoolean err, const char *file, const int line 
 
 inline void __cutilGetLastError( const char *errorMessage, const char *file, const int line )
 {
-    cudaError_t err = cudaGetLastError();
-    if( cudaSuccess != err) {
+    hipError_t err = hipGetLastError();
+    if( hipSuccess != err) {
         FPRINTF((stderr, "%s(%i) : cutilCheckMsg() CUTIL CUDA error : %s : %s.\n",
-                file, line, errorMessage, cudaGetErrorString( err) ));
+                file, line, errorMessage, hipGetErrorString( err) ));
         exit(-1);
     }
 }
 
 inline void __cutilGetLastErrorAndSync( const char *errorMessage, const char *file, const int line )
 {
-    cudaError_t err = cudaGetLastError();
-    if( cudaSuccess != err) {
+    hipError_t err = hipGetLastError();
+    if( hipSuccess != err) {
         FPRINTF((stderr, "%s(%i) : cutilCheckMsg() CUTIL CUDA error : %s : %s.\n",
-                file, line, errorMessage, cudaGetErrorString( err) ));
+                file, line, errorMessage, hipGetErrorString( err) ));
         exit(-1);
     }
 
 	err = cutilDeviceSynchronize();
-    if( cudaSuccess != err) {
-	FPRINTF((stderr, "%s(%i) : cutilCheckMsg cudaDeviceSynchronize error: %s : %s.\n",
-                file, line, errorMessage, cudaGetErrorString( err) ));
+    if( hipSuccess != err) {
+	FPRINTF((stderr, "%s(%i) : cutilCheckMsg hipDeviceSynchronize error: %s : %s.\n",
+                file, line, errorMessage, hipGetErrorString( err) ));
         exit(-1);
     }
 }
@@ -331,7 +331,7 @@ inline void __cutilSafeMalloc( void *pointer, const char *file, const int line )
     inline int cutilDeviceInit(int ARGC, char **ARGV)
     {
         int deviceCount;
-        cutilSafeCallNoSync(cudaGetDeviceCount(&deviceCount));
+        cutilSafeCallNoSync(hipGetDeviceCount(&deviceCount));
         if (deviceCount == 0) {
             FPRINTF((stderr, "CUTIL CUDA error: no devices supporting CUDA.\n"));
             exit(-1);
@@ -347,14 +347,14 @@ inline void __cutilSafeMalloc( void *pointer, const char *file, const int line )
 			fprintf(stderr, "\n");
             return -dev;
         }  
-        cudaDeviceProp deviceProp;
-        cutilSafeCallNoSync(cudaGetDeviceProperties(&deviceProp, dev));
+        hipDeviceProp_t deviceProp;
+        cutilSafeCallNoSync(hipGetDeviceProperties(&deviceProp, dev));
         if (deviceProp.major < 1) {
             FPRINTF((stderr, "cutil error: GPU device does not support CUDA.\n"));
             exit(-1);                                                  \
         }
         printf("> Using CUDA device [%d]: %s\n", dev, deviceProp.name);
-        cutilSafeCall(cudaSetDevice(dev));
+        cutilSafeCall(hipSetDevice(dev));
 
         return dev;
     }
@@ -362,7 +362,7 @@ inline void __cutilSafeMalloc( void *pointer, const char *file, const int line )
     // General initialization call to pick the best CUDA Device
     inline int cutilChooseCudaDevice(int argc, char **argv)
     {
-        cudaDeviceProp deviceProp;
+        hipDeviceProp_t deviceProp;
         int devID = 0;
         // If the command-line has a device number specified, use it
         if( cutCheckCmdLineFlag(argc, (const char**)argv, "device") ) {
@@ -375,8 +375,8 @@ inline void __cutilSafeMalloc( void *pointer, const char *file, const int line )
         } else {
             // Otherwise pick the device with highest Gflops/s
             devID = cutGetMaxGflopsDeviceId();
-            cutilSafeCallNoSync( cudaSetDevice( devID ) );
-            cutilSafeCallNoSync( cudaGetDeviceProperties(&deviceProp, devID) );
+            cutilSafeCallNoSync( hipSetDevice( devID ) );
+            cutilSafeCallNoSync( hipGetDeviceProperties(&deviceProp, devID) );
             printf("> Using CUDA device [%d]: %s\n", devID, deviceProp.name);
         }
         return devID;
@@ -387,16 +387,16 @@ inline void __cutilSafeMalloc( void *pointer, const char *file, const int line )
 //! Check for CUDA context lost
 inline void cutilCudaCheckCtxLost(const char *errorMessage, const char *file, const int line ) 
 {
-    cudaError_t err = cudaGetLastError();
-    if( cudaSuccess != err) {
+    hipError_t err = hipGetLastError();
+    if( hipSuccess != err) {
         FPRINTF((stderr, "%s(%i) : CUDA error: %s : %s.\n",
-        file, line, errorMessage, cudaGetErrorString( err) ));
+        file, line, errorMessage, hipGetErrorString( err) ));
         exit(-1);
     }
     err = cutilDeviceSynchronize();
-    if( cudaSuccess != err) {
+    if( hipSuccess != err) {
         FPRINTF((stderr, "%s(%i) : CUDA error: %s : %s.\n",
-        file, line, errorMessage, cudaGetErrorString( err) ));
+        file, line, errorMessage, hipGetErrorString( err) ));
         exit(-1);
     }
 }
@@ -440,7 +440,7 @@ inline void __cutilQAFinish(int argc, char **argv, bool bStatus)
 // General check for CUDA GPU SM Capabilities
 inline bool cutilCudaCapabilities(int major_version, int minor_version, int argc, char **argv)
 {
-    cudaDeviceProp deviceProp;
+    hipDeviceProp_t deviceProp;
     deviceProp.major = 0;
     deviceProp.minor = 0;
     int dev;
@@ -449,8 +449,8 @@ inline bool cutilCudaCapabilities(int major_version, int minor_version, int argc
     printf("> Compute Device Emulation Mode \n");
 #endif
 
-    cutilSafeCall( cudaGetDevice(&dev) );
-    cutilSafeCall( cudaGetDeviceProperties(&deviceProp, dev));
+    cutilSafeCall( hipGetDevice(&dev) );
+    cutilSafeCall( hipGetDeviceProperties(&deviceProp, dev));
 
     if((deviceProp.major > major_version) ||
 	   (deviceProp.major == major_version && deviceProp.minor >= minor_version)) {

@@ -1,3 +1,4 @@
+#include "hip/hip_runtime.h"
 /*
  * Software License Agreement (BSD License)
  *
@@ -231,9 +232,9 @@ namespace pcl
 
 void pcl::device::FacetStream::setInitialFacets(const InitalSimplex& s)
 {  
-  init_fs<<<1, 1>>>(s.i1, s.i2, s.i3, s.i4, verts_inds);  
-  cudaSafeCall( cudaGetLastError() );
-  cudaSafeCall( cudaDeviceSynchronize() );  
+  hipLaunchKernelGGL(init_fs, dim3(1), dim3(1), 0, 0, s.i1, s.i2, s.i3, s.i4, verts_inds);  
+  cudaSafeCall( hipGetLastError() );
+  cudaSafeCall( hipDeviceSynchronize() );  
   facet_count = 4;
 }
 
@@ -338,9 +339,9 @@ void pcl::device::PointStream::initalClassify()
   
   //printFuncAttrib(initalClassifyKernel);
 
-  initalClassifyKernel<<<divUp(cloud_size, 256), 256>>>(ic, cloud, cloud_size, facets_dists);
-  cudaSafeCall( cudaGetLastError() );
-  cudaSafeCall( cudaDeviceSynchronize() );
+  hipLaunchKernelGGL(initalClassifyKernel, dim3(divUp(cloud_size), dim3(256)), 256, 0, ic, cloud, cloud_size, facets_dists);
+  cudaSafeCall( hipGetLastError() );
+  cudaSafeCall( hipDeviceSynchronize() );
 
   thrust::device_ptr<int> pbeg(perm.ptr());
   thrust::sort_by_key(out, out + cloud_size, pbeg);
@@ -412,12 +413,12 @@ int pcl::device::PointStream::searchFacetHeads(std::size_t facet_count, DeviceAr
     //thrust::counting_iterator<int> e = b + facet_count + 1;  	
     //thrust::for_each(b, e, sfh);
 
-    searchFacetHeadsKernel<<<divUp(facet_count+1, 256), 256>>>(sfh);
-    cudaSafeCall( cudaGetLastError() );
-    cudaSafeCall( cudaDeviceSynchronize() );        
+    hipLaunchKernelGGL(searchFacetHeadsKernel, dim3(divUp(facet_count+1), dim3(256)), 256, 0, sfh);
+    cudaSafeCall( hipGetLastError() );
+    cudaSafeCall( hipDeviceSynchronize() );        
 
 	int new_size;
-	cudaSafeCall( cudaMemcpyFromSymbol(	(void*)&new_size,  pcl::device::new_cloud_size, sizeof(new_size)) );	
+	cudaSafeCall( hipMemcpyFromSymbol((void*)&new_size, HIP_SYMBOL(pcl::device::new_cloud_size), sizeof(new_size)) );	
 	return new_size;
 }
 
@@ -562,9 +563,9 @@ void pcl::device::FacetStream::compactFacets()
   int block = Compaction::CTA_SIZE;
   int grid = divUp(facet_count, block);
 
-  compactionKernel<<<grid, block>>>(c);   
-  cudaSafeCall( cudaGetLastError() );
-  cudaSafeCall( cudaDeviceSynchronize() );
+  hipLaunchKernelGGL(compactionKernel, dim3(grid), dim3(block), 0, 0, c);   
+  cudaSafeCall( hipGetLastError() );
+  cudaSafeCall( hipDeviceSynchronize() );
     
   verts_inds.swap(verts_inds2);
   head_points.swap(head_points2);
@@ -724,9 +725,9 @@ void pcl::device::PointStream::classify(FacetStream& fs)
   //thrust::counting_iterator<int> b(0);    
   //thrust::for_each(b, b + cloud_size, c);
 
-  classifyKernel<<<divUp(cloud_size, 256), 256>>>(c, cloud_size);
-  cudaSafeCall( cudaGetLastError() );
-  cudaSafeCall( cudaDeviceSynchronize() );
+  hipLaunchKernelGGL(classifyKernel, dim3(divUp(cloud_size), dim3(256)), 256, 0, c, cloud_size);
+  cudaSafeCall( hipGetLastError() );
+  cudaSafeCall( hipDeviceSynchronize() );
   
   thrust::device_ptr<std::uint64_t> beg(facets_dists.ptr());
   thrust::device_ptr<std::uint64_t> end = beg + cloud_size;
@@ -789,9 +790,9 @@ void pcl::device::FacetStream::splitFacets()
   //thrust::counting_iterator<int> b(0);    
   //thrust::for_each(b, b + facet_count, sf);
 
-  splitFacetsKernel<<<divUp(facet_count, 256), 256>>>(sf);
-  cudaSafeCall( cudaGetLastError() );
-  cudaSafeCall( cudaDeviceSynchronize() );
+  hipLaunchKernelGGL(splitFacetsKernel, dim3(divUp(facet_count), dim3(256)), 256, 0, sf);
+  cudaSafeCall( hipGetLastError() );
+  cudaSafeCall( hipDeviceSynchronize() );
 
   facet_count *= 3;
 }
@@ -834,7 +835,7 @@ void pcl::device::pack_hull(const DeviceArray<PointType>& points, const DeviceAr
 
   //thrust::gather(mb, me, in, out);
   
-  gatherKernel<<<divUp(indeces.size(), 256), 256>>>(indeces, points, output);
-  cudaSafeCall( cudaGetLastError() );
-  cudaSafeCall( cudaDeviceSynchronize() );
+  hipLaunchKernelGGL(gatherKernel, dim3(divUp(indeces.size()), dim3(256)), 256, 0, indeces, points, output);
+  cudaSafeCall( hipGetLastError() );
+  cudaSafeCall( hipDeviceSynchronize() );
 }

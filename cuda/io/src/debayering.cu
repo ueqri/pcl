@@ -92,21 +92,21 @@ namespace pcl
       if (dataSize < bayer_image->getWidth () * bayer_image->getHeight ())
     	{
     		if (!global_data)
-    			cudaFree (global_data);
+    			hipFree (global_data);
     		dataSize = bayer_image->getWidth () * bayer_image->getHeight ();
-    		cudaError_t status = cudaMalloc( &data, dataSize );
-    		if (status != cudaSuccess )	std::cout << "malloc failed!" << std::endl;
+    		hipError_t status = hipMalloc( &data, dataSize );
+    		if (status != hipSuccess )	std::cout << "malloc failed!" << std::endl;
     		
     		data = global_data;
     	}
     	*/
     	
     /*	thrust::device_vector<unsigned char>* data;
-    	cudaError_t status = cudaMemcpy(data, (void*)(bayer_image->getMetaData().Data()), bayer_image->getMetaData().DataSize(), cudaMemcpyHostToDevice);
-    	if (status != cudaSuccess )
+    	hipError_t status = hipMemcpy(data, (void*)(bayer_image->getMetaData().Data()), bayer_image->getMetaData().DataSize(), hipMemcpyHostToDevice);
+    	if (status != hipSuccess )
     	{
     		 std::cout << "memcpy failed! : " << status << std::endl;
-    		 //std::cout << cudaErrorInvalidValue << " , " << cudaErrorInvalidDevicePointer << " , " << cudaErrorInvalidMemcpyDirection << std::endl;
+    		 //std::cout << hipErrorInvalidValue << " , " << hipErrorInvalidDevicePointer << " , " << hipErrorInvalidMemcpyDirection << std::endl;
     	}*/
     }
     
@@ -171,25 +171,25 @@ namespace pcl
     	if (dataSize < bayer_image->getWidth () * bayer_image->getHeight ())
     	{
     		if (!global_data)
-    			cudaFree (global_data);
+    			hipFree (global_data);
     		dataSize = bayer_image->getWidth () * bayer_image->getHeight ();
-    		cudaError_t status = cudaMalloc( &data, dataSize );
-    		if (status != cudaSuccess )	std::cout << "malloc failed!" << std::endl;
+    		hipError_t status = hipMalloc( &data, dataSize );
+    		if (status != hipSuccess )	std::cout << "malloc failed!" << std::endl;
     		
     		data = global_data;
     	}
     	
-    	cudaError_t status = cudaMemcpy(data, (void*)(bayer_image->getMetaData().Data()), bayer_image->getMetaData().DataSize(), cudaMemcpyHostToDevice);
-    	if (status != cudaSuccess )
+    	hipError_t status = hipMemcpy(data, (void*)(bayer_image->getMetaData().Data()), bayer_image->getMetaData().DataSize(), hipMemcpyHostToDevice);
+    	if (status != hipSuccess )
     	{
     		 std::cout << "memcpy failed! : " << status << std::endl;
-    		 //std::cout << cudaErrorInvalidValue << " , " << cudaErrorInvalidDevicePointer << " , " << cudaErrorInvalidMemcpyDirection << std::endl;
+    		 //std::cout << hipErrorInvalidValue << " , " << hipErrorInvalidDevicePointer << " , " << hipErrorInvalidMemcpyDirection << std::endl;
     	}
     }
     
     DebayerEdgeAware::~DebayerEdgeAware ()
     {
-    	//cudaFree (data);
+    	//hipFree (data);
     }
     
     OpenNIRGB DebayerEdgeAware::operator () (int index) const

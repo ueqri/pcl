@@ -40,7 +40,7 @@
 #pragma once
 
 #include <pcl/gpu/containers/device_array.h>
-#include <cuda_runtime.h> // for float4, uchar4, delete this in future
+#include <hip/hip_runtime.h> // for float4, uchar4, delete this in future
 
 namespace pcl
 {

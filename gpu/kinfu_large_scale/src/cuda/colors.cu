@@ -1,3 +1,4 @@
+#include "hip/hip_runtime.h"
 /*
  * Software License Agreement (BSD License)
  *
@@ -71,9 +72,9 @@ namespace pcl
         grid.x = divUp (VOLUME_X, block.x);
         grid.y = divUp (VOLUME_Y, block.y);
 
-        initColorVolumeKernel<<<grid, block>>>(color_volume);
-        cudaSafeCall ( cudaGetLastError () );
-        cudaSafeCall (cudaDeviceSynchronize ());
+        hipLaunchKernelGGL(initColorVolumeKernel, dim3(grid), dim3(block), 0, 0, color_volume);
+        cudaSafeCall ( hipGetLastError () );
+        cudaSafeCall (hipDeviceSynchronize ());
       }
     }
   }
@@ -235,9 +236,9 @@ namespace pcl
         dim3 block (ColorVolumeImpl::CTA_SIZE_X, ColorVolumeImpl::CTA_SIZE_Y);
         dim3 grid (divUp (VOLUME_X, block.x), divUp (VOLUME_Y, block.y));
 
-        updateColorVolumeKernel<<<grid, block>>>(cvi);
-        cudaSafeCall ( cudaGetLastError () );
-        cudaSafeCall (cudaDeviceSynchronize ());
+        hipLaunchKernelGGL(updateColorVolumeKernel, dim3(grid), dim3(block), 0, 0, cvi);
+        cudaSafeCall ( hipGetLastError () );
+        cudaSafeCall (hipDeviceSynchronize ());
       }
     }
   }
@@ -273,9 +274,9 @@ namespace pcl
       {
         const int block = 256;
         float3 cell_size = make_float3 (volume_size.x / VOLUME_X, volume_size.y / VOLUME_Y, volume_size.z / VOLUME_Z);
-        extractColorsKernel<<<divUp (points.size, block), block>>>(cell_size, color_volume, points, colors);
-        cudaSafeCall ( cudaGetLastError () );
-        cudaSafeCall (cudaDeviceSynchronize ());
+        hipLaunchKernelGGL(extractColorsKernel, dim3(divUp (points.size), dim3(block)), block, 0, cell_size, color_volume, points, colors);
+        cudaSafeCall ( hipGetLastError () );
+        cudaSafeCall (hipDeviceSynchronize ());
       }
     }
   }

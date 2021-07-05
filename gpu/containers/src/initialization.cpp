@@ -37,7 +37,7 @@
 #include <pcl/gpu/containers/initialization.h>
 #include <pcl/gpu/utils/safe_call.hpp>
 
-#include "cuda.h"
+#include "hip/hip_runtime.h"
 
 #include <array> // replace c-style array with std::array
 #include <cstdio>
@@ -89,12 +89,12 @@ int
 pcl::gpu::getCudaEnabledDeviceCount()
 {
   int count;
-  cudaError_t error = cudaGetDeviceCount(&count);
+  hipError_t error = hipGetDeviceCount(&count);
 
-  if (error == cudaErrorInsufficientDriver)
+  if (error == hipErrorInsufficientDriver)
     return -1;
 
-  if (error == cudaErrorNoDevice)
+  if (error == hipErrorNoDevice)
     return 0;
 
   cudaSafeCall(error);
@@ -104,14 +104,14 @@ pcl::gpu::getCudaEnabledDeviceCount()
 void
 pcl::gpu::setDevice(int device)
 {
-  cudaSafeCall(cudaSetDevice(device));
+  cudaSafeCall(hipSetDevice(device));
 }
 
 std::string
 pcl::gpu::getDeviceName(int device)
 {
-  cudaDeviceProp prop;
-  cudaSafeCall(cudaGetDeviceProperties(&prop, device));
+  hipDeviceProp_t prop;
+  cudaSafeCall(hipGetDeviceProperties(&prop, device));
 
   return prop.name;
 }
@@ -120,22 +120,22 @@ bool
 pcl::gpu::checkIfPreFermiGPU(int device)
 {
   if (device < 0)
-    cudaSafeCall(cudaGetDevice(&device));
+    cudaSafeCall(hipGetDevice(&device));
 
-  cudaDeviceProp prop;
-  cudaSafeCall(cudaGetDeviceProperties(&prop, device));
+  hipDeviceProp_t prop;
+  cudaSafeCall(hipGetDeviceProperties(&prop, device));
   return prop.major < 2; // CC == 1.x
 }
 
 namespace {
 template <class T>
 inline void
-getCudaAttribute(T* attribute, CUdevice_attribute device_attribute, int device)
+getCudaAttribute(T* attribute, hipDeviceAttribute_t device_attribute, int device)
 {
   *attribute = T();
-  CUresult error =
-      CUDA_SUCCESS; // = cuDeviceGetAttribute( attribute, device_attribute, device );
-  if (CUDA_SUCCESS == error)
+  hipError_t error =
+      hipSuccess; // = hipDeviceGetAttribute( attribute, device_attribute, device );
+  if (hipSuccess == error)
     return;
 
   printf("Driver API error = %04d\n", error);
@@ -192,20 +192,20 @@ pcl::gpu::printCudaDeviceInfo(int device)
   printf("Device count: %d\n", count);
 
   int driverVersion = 0, runtimeVersion = 0;
-  cudaSafeCall(cudaDriverGetVersion(&driverVersion));
-  cudaSafeCall(cudaRuntimeGetVersion(&runtimeVersion));
+  cudaSafeCall(hipDriverGetVersion(&driverVersion));
+  cudaSafeCall(hipRuntimeGetVersion(&runtimeVersion));
 
   const char* computeMode[] = {
-      "Default (multiple host threads can use ::cudaSetDevice() simultaneously)",
-      "Exclusive (only one host thread in one process can use ::cudaSetDevice())",
-      "Prohibited (no host thread can use ::cudaSetDevice())",
-      "Exclusive Process (many threads in one process can use ::cudaSetDevice())",
+      "Default (multiple host threads can use ::hipSetDevice() simultaneously)",
+      "Exclusive (only one host thread in one process can use ::hipSetDevice())",
+      "Prohibited (no host thread can use ::hipSetDevice())",
+      "Exclusive Process (many threads in one process can use ::hipSetDevice())",
       "Unknown",
       nullptr};
 
   for (int dev = beg; dev < end; ++dev) {
-    cudaDeviceProp prop;
-    cudaSafeCall(cudaGetDeviceProperties(&prop, dev));
+    hipDeviceProp_t prop;
+    cudaSafeCall(hipGetDeviceProperties(&prop, dev));
 
     int sm_cores = convertSMVer2Cores(prop.major, prop.minor);
 
@@ -232,10 +232,10 @@ pcl::gpu::printCudaDeviceInfo(int device)
     // This is not available in the CUDA Runtime API, so we make the necessary calls the
     // driver API to support this for output
     int memoryClock, memBusWidth, L2CacheSize;
-    getCudaAttribute<int>(&memoryClock, CU_DEVICE_ATTRIBUTE_MEMORY_CLOCK_RATE, dev);
+    getCudaAttribute<int>(&memoryClock, hipDeviceAttributeMemoryClockRate, dev);
     getCudaAttribute<int>(
-        &memBusWidth, CU_DEVICE_ATTRIBUTE_GLOBAL_MEMORY_BUS_WIDTH, dev);
-    getCudaAttribute<int>(&L2CacheSize, CU_DEVICE_ATTRIBUTE_L2_CACHE_SIZE, dev);
+        &memBusWidth, hipDeviceAttributeMemoryBusWidth, dev);
+    getCudaAttribute<int>(&L2CacheSize, hipDeviceAttributeL2CacheSize, dev);
 
     printf("  Memory Clock rate:                             %.2f Mhz\n",
            memoryClock * 1e-3f);
@@ -326,12 +326,12 @@ pcl::gpu::printShortCudaDeviceInfo(int device)
   int end = valid ? device + 1 : count;
 
   int driverVersion = 0, runtimeVersion = 0;
-  cudaSafeCall(cudaDriverGetVersion(&driverVersion));
-  cudaSafeCall(cudaRuntimeGetVersion(&runtimeVersion));
+  cudaSafeCall(hipDriverGetVersion(&driverVersion));
+  cudaSafeCall(hipRuntimeGetVersion(&runtimeVersion));
 
   for (int dev = beg; dev < end; ++dev) {
-    cudaDeviceProp prop;
-    cudaSafeCall(cudaGetDeviceProperties(&prop, dev));
+    hipDeviceProp_t prop;
+    cudaSafeCall(hipGetDeviceProperties(&prop, dev));
 
     const char* arch_str = prop.major < 2 ? " (pre-Fermi)" : "";
     printf("[pcl::gpu::printShortCudaDeviceInfo] : Device %d:  \"%s\"  %.0fMb",

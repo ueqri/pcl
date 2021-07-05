@@ -119,7 +119,7 @@ namespace pcl
 			DeviceArray<StateType> particles_;
 
 			// random number generate state
-			DeviceArray<curandState> rng_states;
+			DeviceArray<hiprandState> rng_states;
 						
 			int particle_num_;
 

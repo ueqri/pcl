@@ -51,48 +51,48 @@ namespace pcl
     public:
       AsyncCopy(T* ptr, std::size_t size) : ptr_(ptr)
       {
-        cudaSafeCall( cudaHostRegister(ptr_, size, 0) );        
-        cudaSafeCall( cudaStreamCreate(&stream_) );
+        cudaSafeCall( hipHostRegister(ptr_, size, 0) );        
+        cudaSafeCall( hipStreamCreate(&stream_) );
       }
 
       AsyncCopy(std::vector<T>& data) : ptr_(&data[0])
       {
-        cudaSafeCall( cudaHostRegister(ptr_, data.size(), 0) );        
-        cudaSafeCall( cudaStreamCreate(&stream_) );
+        cudaSafeCall( hipHostRegister(ptr_, data.size(), 0) );        
+        cudaSafeCall( hipStreamCreate(&stream_) );
       }
 
       ~AsyncCopy()
       {          
-        cudaSafeCall( cudaHostUnregister(ptr_) );
-        cudaSafeCall( cudaStreamDestroy(stream_) );
+        cudaSafeCall( hipHostUnregister(ptr_) );
+        cudaSafeCall( hipStreamDestroy(stream_) );
       }
 
       void download(const DeviceArray<T>& arr)
       {
-        cudaSafeCall( cudaMemcpyAsync(ptr_, arr.ptr(), arr.sizeBytes(), cudaMemcpyDeviceToHost, stream_) );	
+        cudaSafeCall( hipMemcpyAsync(ptr_, arr.ptr(), arr.sizeBytes(), hipMemcpyDeviceToHost, stream_) );	
       }
 
       void download(const DeviceArray2D<T>& arr)
       {
-        cudaSafeCall( cudaMemcpy2DAsync(ptr_, arr.cols(), arr.ptr(), arr.step(), arr.colsBytes(), arr.rows(), cudaMemcpyDeviceToHost, stream_) );
+        cudaSafeCall( hipMemcpy2DAsync(ptr_, arr.cols(), arr.ptr(), arr.step(), arr.colsBytes(), arr.rows(), hipMemcpyDeviceToHost, stream_) );
       }
 
       void upload(const DeviceArray<T>& arr) const 
       {
-          cudaSafeCall( cudaMemcpyAsync(arr.ptr(), ptr_, arr.size(), cudaMemcpyHostToDevice, stream_) );	
+          cudaSafeCall( hipMemcpyAsync(arr.ptr(), ptr_, arr.size(), hipMemcpyHostToDevice, stream_) );	
       }
 
       void upload(const DeviceArray2D<T>& arr) const 
       {
-        cudaSafeCall( cudaMemcpy2DAsync(arr.ptr(), arr.step(), ptr_, arr.cols(), arr.colsBytes(), arr.rows(), cudaMemcpyHostToDevice, stream_) );
+        cudaSafeCall( hipMemcpy2DAsync(arr.ptr(), arr.step(), ptr_, arr.cols(), arr.colsBytes(), arr.rows(), hipMemcpyHostToDevice, stream_) );
       }
 
       void waitForCompeltion()
       {
-        cudaSafeCall( cudaStreamSynchronize(stream_) );
+        cudaSafeCall( hipStreamSynchronize(stream_) );
       }
     private:
-      cudaStream_t stream_;
+      hipStream_t stream_;
       T* ptr_   ;
     };
   }

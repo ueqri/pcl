@@ -45,7 +45,7 @@
 #include <string>
 #include <vector>
 
-#include <cuda_runtime_api.h>
+#include <hip/hip_runtime_api.h>
 
 #include "NCVHaarObjectDetection.hpp"
 
@@ -102,7 +102,7 @@ namespace pcl
                      NCVVector<HaarStage64>               &h_haar_stages,
                      INCVMemAllocator                     &gpu_allocator,
                      INCVMemAllocator                     &cpu_allocator,
-                     cudaDeviceProp                       &device_properties,
+                     hipDeviceProp_t                       &device_properties,
                      Ncv32u                               width=640,
                      Ncv32u                               height=480,
                      NcvBool                              bFilterRects=false,
@@ -170,7 +170,7 @@ namespace pcl
           bool                filter_rects_;        /** \brief rectangular filter **/
 
           int                 cuda_dev_id_;         /** \brief indicates which GPU to use for this **/
-          cudaDeviceProp      cuda_dev_prop_;
+          hipDeviceProp_t      cuda_dev_prop_;
 
           std::string         cascade_file_name_;
 
