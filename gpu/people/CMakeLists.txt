@@ -18,16 +18,16 @@ REMOVE_VTK_DEFINITIONS()
 
 #find NPP
 unset(CUDA_npp_LIBRARY CACHE)
-find_cuda_helper_libs(nppc)
-find_cuda_helper_libs(npps)
-if(CUDA_VERSION VERSION_GREATER "9.0" OR CUDA_VERSION VERSION_EQUAL "9.0")
-  find_cuda_helper_libs(nppim)
-  find_cuda_helper_libs(nppidei)
-  set(CUDA_npp_LIBRARY ${CUDA_nppc_LIBRARY} ${CUDA_nppim_LIBRARY} ${CUDA_nppidei_LIBRARY} ${CUDA_npps_LIBRARY} CACHE STRING "npp library")
-else()
-  find_cuda_helper_libs(nppi)
-  set(CUDA_npp_LIBRARY ${CUDA_nppc_LIBRARY} ${CUDA_nppi_LIBRARY} ${CUDA_npps_LIBRARY} CACHE STRING "npp library")
-endif()
+# find_cuda_helper_libs(nppc)
+# find_cuda_helper_libs(npps)
+# if(CUDA_VERSION VERSION_GREATER "9.0" OR CUDA_VERSION VERSION_EQUAL "9.0")
+#   find_cuda_helper_libs(nppim)
+#   find_cuda_helper_libs(nppidei)
+#   set(CUDA_npp_LIBRARY ${CUDA_nppc_LIBRARY} ${CUDA_nppim_LIBRARY} ${CUDA_nppidei_LIBRARY} ${CUDA_npps_LIBRARY} CACHE STRING "npp library")
+# else()
+#   find_cuda_helper_libs(nppi)
+#   set(CUDA_npp_LIBRARY ${CUDA_nppc_LIBRARY} ${CUDA_nppi_LIBRARY} ${CUDA_npps_LIBRARY} CACHE STRING "npp library")
+# endif()
 
 #Label_skeleton
 

@@ -264,6 +264,45 @@ function(PCL_CUDA_ADD_LIBRARY _name)
   set(multiValueArgs SOURCES)
   cmake_parse_arguments(ADD_LIBRARY_OPTION "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
+  thrust_create_target(ThrustCPU${_name} DEVICE OMP)
+
+  REMOVE_VTK_DEFINITIONS()
+  if(PCL_SHARED_LIBS)
+    # to overcome a limitation in cuda_add_library, we add manually PCLAPI_EXPORTS macro
+    add_definitions(-DPCLAPI_EXPORTS)
+  endif()
+  add_library(${_name} ${PCL_LIB_TYPE} ${ADD_LIBRARY_OPTION_SOURCES})
+  PCL_ADD_VERSION_INFO(${_name})
+
+  # must link explicitly against boost.
+  target_link_libraries(${_name} ${Boost_LIBRARIES} dl tbb Threads::Threads ThrustCPU${_name})
+  # target_link_libraries(${_name} INTERFACE hip_cpu_rt::hip_cpu_rt)
+  target_compile_features(${_name} PUBLIC cxx_std_17)
+  target_compile_options(${_name} PRIVATE -w -fopenmp-simd -fpermissive)
+
+  set_target_properties(${_name} PROPERTIES
+    VERSION ${PCL_VERSION}
+    SOVERSION ${PCL_VERSION_MAJOR}
+    DEFINE_SYMBOL "PCLAPI_EXPORTS")
+  set_target_properties(${_name} PROPERTIES FOLDER "Libraries")
+
+  install(TARGETS ${_name}
+          RUNTIME DESTINATION ${BIN_INSTALL_DIR} COMPONENT pcl_${ADD_LIBRARY_OPTION_COMPONENT}
+          LIBRARY DESTINATION ${LIB_INSTALL_DIR} COMPONENT pcl_${ADD_LIBRARY_OPTION_COMPONENT}
+          ARCHIVE DESTINATION ${LIB_INSTALL_DIR} COMPONENT pcl_${ADD_LIBRARY_OPTION_COMPONENT})
+endfunction()
+
+###############################################################################
+# Add a cuda library target.
+# _name The library name.
+# COMPONENT The part of PCL that this library belongs to.
+# SOURCES The source files for the library.
+function(PCL_CUDA_ADD_LIBRARY_OLD _name)
+  set(options)
+  set(oneValueArgs COMPONENT)
+  set(multiValueArgs SOURCES)
+  cmake_parse_arguments(ADD_LIBRARY_OPTION "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+
   REMOVE_VTK_DEFINITIONS()
   if(PCL_SHARED_LIBS)
     # to overcome a limitation in cuda_add_library, we add manually PCLAPI_EXPORTS macro
@@ -340,6 +379,40 @@ endfunction()
 # COMPONENT The part of PCL that this library belongs to.
 # SOURCES The source files for the library.
 function(PCL_CUDA_ADD_EXECUTABLE _name)
+  set(options)
+  set(oneValueArgs COMPONENT)
+  set(multiValueArgs SOURCES)
+  cmake_parse_arguments(ADD_LIBRARY_OPTION "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+
+  REMOVE_VTK_DEFINITIONS()
+  add_executable(${_name} ${ADD_LIBRARY_OPTION_SOURCES})
+  PCL_ADD_VERSION_INFO(${_name})
+  thrust_create_target(ThrustCPU${_name} DEVICE OMP)
+  # must link explicitly against boost.
+  target_link_libraries(${_name} ${Boost_LIBRARIES} ThrustCPU${_name} dl tbb Threads::Threads)
+  # target_link_libraries(${_name} INTERFACE hip_cpu_rt::hip_cpu_rt)
+  target_compile_features(${_name} PUBLIC cxx_std_17)
+  target_compile_options(${_name} PRIVATE -w -fopenmp-simd -fpermissive)
+
+  if(WIN32 AND MSVC)
+    set_target_properties(${_name} PROPERTIES DEBUG_OUTPUT_NAME ${_name}${CMAKE_DEBUG_POSTFIX}
+                                              RELEASE_OUTPUT_NAME ${_name}${CMAKE_RELEASE_POSTFIX})
+  endif()
+
+  # There's a single app.
+  set_target_properties(${_name} PROPERTIES FOLDER "Apps")
+
+  set(PCL_EXECUTABLES ${PCL_EXECUTABLES} ${_name})
+  install(TARGETS ${_name} RUNTIME DESTINATION ${BIN_INSTALL_DIR}
+          COMPONENT pcl_${ADD_LIBRARY_OPTION_COMPONENT})
+endfunction()
+
+###############################################################################
+# Add an executable target.
+# _name The executable name.
+# COMPONENT The part of PCL that this library belongs to.
+# SOURCES The source files for the library.
+function(PCL_CUDA_ADD_EXECUTABLE_OLD _name)
   set(options)
   set(oneValueArgs COMPONENT)
   set(multiValueArgs SOURCES)

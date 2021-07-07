@@ -365,6 +365,10 @@ endif()
 option(WITH_CUDA "Build NVIDIA-CUDA support" TRUE)
 if(WITH_CUDA)
   include("${PCL_SOURCE_DIR}/cmake/pcl_find_cuda.cmake")
+  find_package(hip_cpu_rt REQUIRED)
+  set(Thrust_DIR "/thrust/thrust/cmake/")
+  find_package(Thrust REQUIRED CONFIG)
+  thrust_create_target(ThrustCPU DEVICE CPP)
 endif()
 
 

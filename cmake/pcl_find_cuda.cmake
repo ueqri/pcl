@@ -6,10 +6,10 @@ if(MSVC)
 endif()
 
 set(CUDA_FIND_QUIETLY TRUE)
-find_package(CUDA 9.0)
-
+# find_package(CUDA 9.0)
+set(CUDA_FOUND TRUE)
 if(CUDA_FOUND)
-  message(STATUS "Found CUDA Toolkit v${CUDA_VERSION_STRING}")
+  message(STATUS "Found CUDA Toolkit")
   set(HAVE_CUDA TRUE)
 
   # CUDA_ARCH_BIN is a space separated list of versions to include in output so-file. So you can set CUDA_ARCH_BIN = 10 11 12 13 20
@@ -30,26 +30,26 @@ if(CUDA_FOUND)
   # or
   # https://docs.nvidia.com/cuda/cuda-toolkit-release-notes/index.html#deprecated-features
   
-  if(NOT ${CUDA_VERSION_STRING} VERSION_LESS "11.0")
-    set(__cuda_arch_bin "3.5 3.7 5.0 5.2 5.3 6.0 6.1 6.2 7.0 7.2 7.5 8.0 8.6")
-  elseif(NOT ${CUDA_VERSION_STRING} VERSION_LESS "10.0")
-    set(__cuda_arch_bin "3.0 3.2 3.5 3.7 5.0 5.2 5.3 6.0 6.1 6.2 7.0 7.2 7.5")
-  elseif(NOT ${CUDA_VERSION_STRING} VERSION_LESS "9.0")
-    set(__cuda_arch_bin "3.0 3.2 3.5 3.7 5.0 5.2 5.3 6.0 6.1 6.2 7.0 7.2")
-  endif()
+  # if(NOT ${CUDA_VERSION_STRING} VERSION_LESS "11.0")
+  #   set(__cuda_arch_bin "3.5 3.7 5.0 5.2 5.3 6.0 6.1 6.2 7.0 7.2 7.5 8.0 8.6")
+  # elseif(NOT ${CUDA_VERSION_STRING} VERSION_LESS "10.0")
+  #   set(__cuda_arch_bin "3.0 3.2 3.5 3.7 5.0 5.2 5.3 6.0 6.1 6.2 7.0 7.2 7.5")
+  # elseif(NOT ${CUDA_VERSION_STRING} VERSION_LESS "9.0")
+  #   set(__cuda_arch_bin "3.0 3.2 3.5 3.7 5.0 5.2 5.3 6.0 6.1 6.2 7.0 7.2")
+  # endif()
 
-  set(CUDA_ARCH_BIN ${__cuda_arch_bin} CACHE STRING "Specify 'real' GPU architectures to build binaries for, BIN(PTX) format is supported")
+  # set(CUDA_ARCH_BIN ${__cuda_arch_bin} CACHE STRING "Specify 'real' GPU architectures to build binaries for, BIN(PTX) format is supported")
 
-  set(CUDA_ARCH_PTX "" CACHE STRING "Specify 'virtual' PTX arch to build PTX intermediate code for. Example: 1.0 1.2 or 10 12")
+  # set(CUDA_ARCH_PTX "" CACHE STRING "Specify 'virtual' PTX arch to build PTX intermediate code for. Example: 1.0 1.2 or 10 12")
   #set(CUDA_ARCH_PTX "1.1 1.2" CACHE STRING "Specify 'virtual' PTX arch to build PTX intermediate code for. Example: 1.0 1.2 or 10 12")
 
   # Guess this macros will be included in cmake distributive
-  include(${PCL_SOURCE_DIR}/cmake/CudaComputeTargetFlags.cmake)
-  APPEND_TARGET_ARCH_FLAGS()
+  # include(${PCL_SOURCE_DIR}/cmake/CudaComputeTargetFlags.cmake)
+  # APPEND_TARGET_ARCH_FLAGS()
 
   # Prevent compilation issues between recent gcc versions and old CUDA versions
-  list(APPEND CUDA_NVCC_FLAGS "-D_FORCE_INLINES")
+  # list(APPEND CUDA_NVCC_FLAGS "-D_FORCE_INLINES")
   
   # Allow calling a constexpr __host__ function from a __device__ function.
-  list(APPEND CUDA_NVCC_FLAGS "--expt-relaxed-constexpr")
+  # list(APPEND CUDA_NVCC_FLAGS "--expt-relaxed-constexpr")
 endif()
