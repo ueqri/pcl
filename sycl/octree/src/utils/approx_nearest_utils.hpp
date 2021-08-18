@@ -9,6 +9,8 @@
 
 #pragma once
 
+#define CALLED_BY_KERNEL
+
 #include "morton.hpp"
 #include <assert.h>
 
@@ -75,6 +77,7 @@ nearestVoxel(const float3 query,
   return {closest, 1 << closest_index};
 }
 
+CALLED_BY_KERNEL
 #pragma hd_warning_disable
 template <typename T>
 __device__ __host__ int
