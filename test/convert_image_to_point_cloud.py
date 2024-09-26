@@ -59,3 +59,5 @@ print "DATA ascii"
 
 for p in points:
   print p[0], p[1], p[2], p[3]<<16 | p[4]<<8 | p[5]
+
+# here is a test for CI.
